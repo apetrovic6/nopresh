@@ -1,14 +1,39 @@
-{ pkgs, lib, config, inputs, ... }:
-
 {
+  pkgs,
+  lib,
+  config,
+  inputs,
+  ...
+}: {
   # https://devenv.sh/basics/
   env.GREET = "devenv";
 
   # https://devenv.sh/packages/
-  packages = [ pkgs.git ];
+  packages = with pkgs; [
+    git
+    buf
+    protoc-gen-connect-go
+    vitejs
+    tailwindcss
+    vscode-langservers-extracted
+    superhtml
+  ];
 
   # https://devenv.sh/languages/
-  # languages.rust.enable = true;
+  languages.go = {
+    enable = true;
+    version = "1.26.4";
+  };
+
+  languages.typescript = {
+    enable = true;
+  };
+
+  languages.javascript = {
+    enable = true;
+    bun.enable = true;
+    pnpm.enable = true;
+  };
 
   # https://devenv.sh/processes/
   # processes.dev.exec = "${lib.getExe pkgs.watchexec} -n -- ls -la";
