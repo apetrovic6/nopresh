@@ -11,8 +11,14 @@
   # https://devenv.sh/packages/
   packages = with pkgs; [
     git
+
+    # Protobuf stuff
+    protols
     buf
+    pb
     protoc-gen-connect-go
+    protoc-gen-es
+
     vitejs
     tailwindcss
     vscode-langservers-extracted
