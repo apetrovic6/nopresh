@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package proto.auth.v1;
+
+import "buf/validate/validate.proto";
+
+message RegisterRequest {
+  string name = 1 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 50
+    },
+    (buf.validate.field).required = true
+  ];
+
+  string email = 2 [
+    (buf.validate.field).string.email = true,
+    (buf.validate.field).required = true
+  ];
+
+  string password = 3 [
+    (buf.validate.field).string = {
+      min_len: 5
+      max_len: 50
+    },
+    (buf.validate.field).required = true
+  ];
+}
+
+message LoginRequest {
+  string email = 1 [
+    (buf.validate.field).string.email = true,
+    (buf.validate.field).required = true
+  ];
+
+  string password = 2 [
+    (buf.validate.field).string = {
+      min_len: 5
+      max_len: 50
+    },
+    (buf.validate.field).required = true
+  ];
+}
+
+message RegisterResponse{
+  string token = 1;
+}
+
+message LoginResponse{
+  string token = 1;
+}
+
+
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+  rpc Login(LoginRequest) returns (LoginResponse) {}
+}
+
