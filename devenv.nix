@@ -19,6 +19,11 @@
     protoc-gen-connect-go
     protoc-gen-es
 
+    bruno
+
+    # Go
+    gorm-gentool
+
     vitejs
     tailwindcss
     vscode-langservers-extracted
@@ -40,6 +45,29 @@
     bun.enable = true;
     pnpm.enable = true;
   };
+
+  services.postgres = {
+    enable = true;
+    listen_addresses = "0.0.0.0";
+    port = 5433;
+    createDatabase = true;
+    package = pkgs.postgresql_18;
+    initialDatabases = let
+      user = "user";
+      pass = "password";
+    in [
+      {
+        name = "nopresh";
+        inherit user pass;
+      }
+    ];
+  };
+  
+  services.adminer = {
+    enable = true;
+    listen = "127.0.0.1:8080";
+  };
+
 
   # https://devenv.sh/processes/
   # processes.dev.exec = "${lib.getExe pkgs.watchexec} -n -- ls -la";
@@ -73,5 +101,8 @@
   # https://devenv.sh/git-hooks/
   # git-hooks.hooks.shellcheck.enable = true;
 
+  env.NOPRESH_DB_DSN = "host=localhost user=user password=password dbname=nopresh port=5433 sslmode=disable TimeZone=Europe/Zagreb";
+
+  
   # See full reference at https://devenv.sh/reference/options/
 }
