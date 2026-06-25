@@ -5,7 +5,9 @@ import (
 	"errors"
 	"log/slog"
 
+	"connectrpc.com/authn"
 	"connectrpc.com/connect"
+	"google.golang.org/protobuf/types/known/emptypb"
 	authv1 "nopresh.apetrovic.com/gen/proto/auth/v1"
 	"nopresh.apetrovic.com/internal/data"
 	user "nopresh.apetrovic.com/internal/domain/user"
@@ -20,14 +22,13 @@ type AuthServer struct {
 
 func (s *AuthServer) Register(
 	_ context.Context,
-	req *authv1.RegisterRequest,
-) (*authv1.RegisterResponse, error) {
-
-	user := user.New(req.Email, req.Name)
+	req *connect.Request[authv1.RegisterRequest],
+) (*connect.Response[authv1.RegisterResponse], error) {
+	user := user.New(req.Msg.Email, req.Msg.Name)
 
 	params := auth.DefaultParams()
 
-	encodedHash, err := auth.GenerateFromPassword(req.Password, params)
+	encodedHash, err := auth.GenerateFromPassword(req.Msg.Password, params)
 
 	if err != nil {
 		s.logger.Error(err.Error())
@@ -40,22 +41,27 @@ func (s *AuthServer) Register(
 		return nil, err
 	}
 
-	res := &authv1.RegisterResponse{Token: "ugala bugala"}
+	token, err := s.jwt.CreateToken(user.ID, user.Name, user.Email)
+
+	res := connect.NewResponse(&authv1.RegisterResponse{Token: token})
+
+	res.Header().Set("Set-Cookie",
+		"jwt="+token+"; HttpOnly; SameSite=Lax; Path=/")
 
 	return res, nil
 }
 
 func (s *AuthServer) Login(
 	_ context.Context,
-	req *authv1.LoginRequest,
-) (*authv1.LoginResponse, error) {
-	user, err := s.models.Users.GetByEmail(req.Email)
+	req *connect.Request[authv1.LoginRequest],
+) (*connect.Response[authv1.LoginResponse], error) {
+	user, err := s.models.Users.GetByEmail(req.Msg.Email)
 
 	if err != nil {
 		return nil, err
 	}
 
-	match, err := auth.ComparePasswordAndHash(req.Password, user.Hashed_pasword)
+	match, err := auth.ComparePasswordAndHash(req.Msg.Password, user.Hashed_pasword)
 
 	if err != nil {
 		return nil, err
@@ -72,6 +78,25 @@ func (s *AuthServer) Login(
 		return nil, err
 	}
 
-	res := &authv1.LoginResponse{Token: token}
+	res := connect.NewResponse(&authv1.LoginResponse{Token: token})
+
+	res.Header().Set("Set-Cookie",
+		"jwt="+token+"; HttpOnly; SameSite=Lax; Path=/")
+
 	return res, nil
+}
+
+func (s *AuthServer) Me(
+	ctx context.Context,
+	_ *connect.Request[emptypb.Empty],
+) (*connect.Response[authv1.MeResponse], error) {
+	claims, ok := authn.GetInfo(ctx).(*auth.UserClaims)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("missing auth info"))
+	}
+
+	return connect.NewResponse(&authv1.MeResponse{
+		Name:  claims.Name,
+		Email: claims.Email,
+	}), nil
 }

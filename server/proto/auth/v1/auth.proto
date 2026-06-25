@@ -3,6 +3,7 @@ syntax = "proto3";
 package proto.auth.v1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/empty.proto";
 
 message RegisterRequest {
   string name = 1 [
@@ -51,8 +52,18 @@ message LoginResponse{
 }
 
 
+message MeResponse {
+  string name = 1;
+  string email = 2;
+}
+
+
+
+
 service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse) {}
   rpc Login(LoginRequest) returns (LoginResponse) {}
+  // buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+  rpc Me(google.protobuf.Empty) returns (MeResponse) {}
 }
 

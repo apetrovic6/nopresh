@@ -9,6 +9,7 @@ import (
 
 type UserClaims struct {
 	ID    uint
+	Name  string
 	Email string
 	jwt.RegisteredClaims
 }
@@ -45,6 +46,7 @@ func NewJWT(secretKey string, tokenDuration time.Duration) *JWT {
 func (j *JWT) CreateToken(id uint, name, email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, UserClaims{
 		ID:    id,
+		Name:  name,
 		Email: email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.tokenDuration)),
