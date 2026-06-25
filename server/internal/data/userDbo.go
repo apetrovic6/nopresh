@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"errors"
+	"strings"
 
 	"gorm.io/gorm"
 	user "nopresh.apetrovic.com/internal/domain/user"
@@ -33,6 +35,10 @@ func (u UserModel) Insert(user *user.User, password []byte) (*user.User, error) 
 	err := gorm.G[UserDbo](u.DB).Create(ctx, userDbo)
 
 	if err != nil {
+		if strings.Contains(err.Error(), "idx_users_email") {
+			return nil, errors.New("Couldn't register the user.")
+		}
+
 		return nil, err
 	}
 
