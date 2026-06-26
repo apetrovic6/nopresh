@@ -43,27 +43,31 @@ message LoginRequest {
   ];
 }
 
-message RegisterResponse{
-  string token = 1;
+message RegisterResponse {
+  string access_token = 1;
+  string refresh_token = 2;
 }
 
-message LoginResponse{
-  string token = 1;
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
 }
-
 
 message MeResponse {
   string name = 1;
   string email = 2;
 }
 
-
-
-
 service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse) {}
   rpc Login(LoginRequest) returns (LoginResponse) {}
+
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
   // buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  rpc Logout(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  // buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
   rpc Me(google.protobuf.Empty) returns (MeResponse) {}
 }
-

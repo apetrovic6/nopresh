@@ -57,7 +57,7 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	db.AutoMigrate(&data.UserDbo{})
+	db.AutoMigrate(&data.UserDbo{}, &data.RefreshTokenDbo{})
 
 	app := &app{
 		logger: logger,

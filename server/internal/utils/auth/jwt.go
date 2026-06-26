@@ -1,10 +1,12 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 type UserClaims struct {
@@ -56,6 +58,34 @@ func (j *JWT) CreateToken(id uint, name, email string) (string, error) {
 
 	return token.SignedString([]byte(j.secretKey))
 }
+
+func (j *JWT) CreateRefreshToken(id uint, name, email string, expiresAt time.Time) (string, string, error) {
+	uuid, err := uuid.NewV6()
+
+	if err != nil {
+		return "", "", errors.New("couldn't generate uuid for refresh token")
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, UserClaims{
+		ID:    id,
+		Name:  name,
+		Email: email,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.String(),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	})
+
+	tokenString, err := token.SignedString([]byte(j.secretKey))
+
+	if err != nil {
+		return "", "", errors.New("couldn't generate signed token string")
+	}
+
+	return tokenString, uuid.String(), nil
+}
+
 func (j *JWT) VerifyToken(tokenStr string) (*UserClaims, error) {
 	var claims UserClaims
 
