@@ -6,8 +6,6 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { TransportProvider } from '@connectrpc/connect-query';
-import Footer from '../components/Footer'
-import Header from '../components/Header'
 
 import StoreDevtools from '../lib/demo-store-devtools'
 
@@ -16,14 +14,18 @@ import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import appCss from '../styles.css?url'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { createConnectTransport } from '@connectrpc/connect-web'
 import { TooltipProvider } from '#/components/ui/tooltip';
-import { SidebarProvider, SidebarTrigger, useSidebar } from '#/components/ui/sidebar';
-import { AppSidebar } from '#/components/Sidebar';
+import type { AuthActions, AuthStore } from '#/store/auth-store';
+import type { Store } from '@tanstack/react-store';
+import { queryClient, transport } from '#/integrations/connect';
+
+
 
 interface MyRouterContext {
   queryClient: QueryClient
+  auth: Store<AuthStore, AuthActions>
 }
+
 
 const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`
 
@@ -51,11 +53,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   shellComponent: RootDocument,
 })
 
-const transport = createConnectTransport({
-  baseUrl: "http://localhost:5000/api",
-});
-
-const queryClient = new QueryClient()
 
 
 function RootDocument({ children }: { children: React.ReactNode }) {
@@ -70,12 +67,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <TransportProvider transport={transport}>
           <QueryClientProvider client={queryClient}>
             <TooltipProvider>
-              <SidebarProvider >
-                <AppSidebar />
-                <SidebarTrigger />
-                {children}
-                <Footer />
-              </SidebarProvider>
+              {children}
             </TooltipProvider>
           </QueryClientProvider>
         </TransportProvider>
