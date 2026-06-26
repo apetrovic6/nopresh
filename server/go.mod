@@ -11,10 +11,12 @@ require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20260415201107-50325440f8f2.1
 	connectrpc.com/authn v0.2.0
 	connectrpc.com/connect v1.20.0
+	connectrpc.com/cors v0.1.0
 	connectrpc.com/grpcreflect v1.3.0
 	connectrpc.com/validate v0.6.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
+	github.com/rs/cors v1.11.1
 	golang.org/x/crypto v0.53.0
 	google.golang.org/protobuf v1.36.11
 	gorm.io/driver/postgres v1.6.0
