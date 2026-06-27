@@ -3,11 +3,25 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
+	"connectrpc.com/authn"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
+
+var (
+	ErrCouldntVerifyAccessToken  = errors.New("couldn't verify access token")
+	ErrCouldntVerifyRefreshToken = errors.New("couldn't verify refresh token")
+)
+
+type AuthInfo struct {
+	RefreshClaims *UserClaims
+	JwtClaims     *UserClaims
+	JWTToken      string
+	RefreshToken  string
+}
 
 type UserClaims struct {
 	ID    uint
@@ -51,7 +65,7 @@ func (j *JWT) CreateToken(id uint, name, email string) (string, error) {
 		Name:  name,
 		Email: email,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.tokenDuration)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	})
@@ -101,4 +115,36 @@ func (j *JWT) VerifyToken(tokenStr string) (*UserClaims, error) {
 	}
 
 	return &claims, nil
+}
+
+func (j *JWT) ExtractTokens(req *http.Request) (string, string, error) {
+	jwtToken := ""
+	refreshToken := ""
+
+	if cookie, err := req.Cookie("jwt"); err == nil {
+		jwtToken = cookie.Value
+	} else if t, ok := authn.BearerToken(req); ok {
+		jwtToken = t
+	}
+
+	if jwtToken == "" {
+		return "", "", ErrCouldntVerifyAccessToken
+	}
+
+	if cookie, err := req.Cookie("refresh"); err == nil {
+		refreshToken = cookie.Value
+	}
+
+	if cookie, err := req.Cookie("refresh"); err == nil {
+		refreshToken = cookie.Value
+	} else if t, ok := authn.BearerToken(req); ok {
+		refreshToken = t
+	}
+
+	if refreshToken == "" {
+		return "", "", ErrCouldntVerifyRefreshToken
+	}
+
+	return jwtToken, refreshToken, nil
+
 }

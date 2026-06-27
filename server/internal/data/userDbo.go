@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"gorm.io/gorm"
-	user "nopresh.apetrovic.com/internal/domain/user"
+	user "nopresh.apetrovic.com/internal/domain"
 )
 
 type UserModel struct {

@@ -11,7 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	authv1 "nopresh.apetrovic.com/gen/proto/auth/v1"
 	"nopresh.apetrovic.com/internal/data"
-	user "nopresh.apetrovic.com/internal/domain/user"
+	user "nopresh.apetrovic.com/internal/domain"
 	"nopresh.apetrovic.com/internal/utils/auth"
 )
 
@@ -25,7 +25,7 @@ func (s *AuthServer) Register(
 	_ context.Context,
 	req *connect.Request[authv1.RegisterRequest],
 ) (*connect.Response[authv1.RegisterResponse], error) {
-	user := user.New(req.Msg.Email, req.Msg.Name)
+	newUser := user.New(req.Msg.Email, req.Msg.Name)
 
 	params := auth.DefaultParams()
 
@@ -36,13 +36,13 @@ func (s *AuthServer) Register(
 		return nil, err
 	}
 
-	user, err = s.models.Users.Insert(user, encodedHash)
+	newUser, err = s.models.Users.Insert(newUser, encodedHash)
 
 	if err != nil {
 		return nil, err
 	}
 
-	accessToken, err := s.jwt.CreateToken(user.ID, user.Name, user.Email)
+	accessToken, err := s.jwt.CreateToken(newUser.ID, newUser.Name, newUser.Email)
 
 	if err != nil {
 		s.logger.Error("error during creation of jwt token ", "error", err.Error())
@@ -51,14 +51,14 @@ func (s *AuthServer) Register(
 
 	refreshExpiry := time.Now().Add(30 * time.Hour)
 
-	refreshTokenString, uuid, err := s.jwt.CreateRefreshToken(user.ID, user.Name, user.Email, refreshExpiry)
+	refreshTokenString, uuid, err := s.jwt.CreateRefreshToken(newUser.ID, newUser.Name, newUser.Email, refreshExpiry)
 
 	if err != nil {
 		s.logger.Error("error during creation of jwt token ", "error", err.Error())
 		return nil, err
 	}
 
-	refreshToken, err := s.models.RefreshToken.Insert(refreshTokenString, uuid, user.Email, refreshExpiry)
+	refreshToken, err := s.models.RefreshToken.Insert(refreshTokenString, uuid, newUser.Email, refreshExpiry)
 
 	if err != nil {
 		s.logger.Error("error during creation of the refresh token ", "error", err.Error())
@@ -135,7 +135,7 @@ func (s *AuthServer) Login(
 }
 
 func (s *AuthServer) Logout(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[emptypb.Empty], error) {
-	info, ok := authn.GetInfo(ctx).(*AuthInfo)
+	info, ok := authn.GetInfo(ctx).(*auth.AuthInfo)
 
 	if !ok {
 		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("missing auth info"))
@@ -159,7 +159,7 @@ func (s *AuthServer) Me(
 	ctx context.Context,
 	_ *connect.Request[emptypb.Empty],
 ) (*connect.Response[authv1.MeResponse], error) {
-	info, ok := authn.GetInfo(ctx).(*AuthInfo)
+	info, ok := authn.GetInfo(ctx).(*auth.AuthInfo)
 
 	if !ok {
 		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("missing auth info"))
