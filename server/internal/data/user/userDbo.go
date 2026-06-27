@@ -1,4 +1,4 @@
-package data
+package user
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"gorm.io/gorm"
-	user "nopresh.apetrovic.com/internal/domain"
+	"nopresh.apetrovic.com/internal/domain/user"
 )
 
 type UserModel struct {

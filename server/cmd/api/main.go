@@ -14,6 +14,9 @@ import (
 	"nopresh.apetrovic.com/gen/greet/v1/greetv1connect"
 	"nopresh.apetrovic.com/gen/proto/auth/v1/authv1connect"
 	"nopresh.apetrovic.com/internal/data"
+	bp "nopresh.apetrovic.com/internal/data/bloodpressure"
+	rt "nopresh.apetrovic.com/internal/data/refreshToken"
+	user "nopresh.apetrovic.com/internal/data/user"
 	"nopresh.apetrovic.com/internal/utils/auth"
 )
 
@@ -33,10 +36,11 @@ type db struct {
 }
 
 type app struct {
-	config config
-	logger *slog.Logger
-	models data.Models
-	jwt    *auth.JWT
+	config      config
+	logger      *slog.Logger
+	models      data.Models
+	middlewares Middlewares
+	jwt         *auth.JWT
 }
 
 func main() {
@@ -57,13 +61,17 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	db.AutoMigrate(&data.UserDbo{}, &data.RefreshTokenDbo{})
+	db.AutoMigrate(&user.UserDbo{}, &bp.BloodPressureDbo{}, &rt.RefreshTokenDbo{})
 
+	jwt := auth.NewJWT(cfg.jwtSecret, cfg.jwtDuration)
 	app := &app{
 		logger: logger,
 		config: cfg,
+		middlewares: Middlewares{
+			jwt: jwt,
+		},
 		models: data.NewModels(db),
-		jwt:    auth.NewJWT(cfg.jwtSecret, cfg.jwtDuration),
+		jwt:    jwt,
 	}
 
 	api := app.routes()
@@ -74,6 +82,7 @@ func main() {
 	)
 
 	mux := http.NewServeMux()
+
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 	mux.Handle("/api/", http.StripPrefix("/api", api))

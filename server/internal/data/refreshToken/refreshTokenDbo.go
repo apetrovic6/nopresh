@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	domain "nopresh.apetrovic.com/internal/domain"
+	r "nopresh.apetrovic.com/internal/domain/refreshToken"
 )
 
 type RefreshTokenModel struct {
@@ -25,7 +25,7 @@ func (rt RefreshTokenDbo) TableName() string {
 	return "refresh_tokens"
 }
 
-func (rt RefreshTokenModel) Insert(token, uuid, userEmail string, expiresAt time.Time) (*domain.RefreshToken, error) {
+func (rt RefreshTokenModel) Insert(token, uuid, userEmail string, expiresAt time.Time) (*r.RefreshToken, error) {
 	ctx := context.Background()
 
 	refreshToken := New(token, uuid, userEmail, expiresAt)
@@ -61,8 +61,8 @@ func New(refreshToken, uuid, userEmail string, expiresAt time.Time) *RefreshToke
 	}
 }
 
-func toRefreshToken(dbo RefreshTokenDbo) *domain.RefreshToken {
-	return &domain.RefreshToken{
+func toRefreshToken(dbo RefreshTokenDbo) *r.RefreshToken {
+	return &r.RefreshToken{
 		ID:           dbo.ID,
 		UserEamil:    dbo.UserEmail,
 		RefreshToken: dbo.RefreshToken,

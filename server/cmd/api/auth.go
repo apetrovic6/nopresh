@@ -11,7 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	authv1 "nopresh.apetrovic.com/gen/proto/auth/v1"
 	"nopresh.apetrovic.com/internal/data"
-	user "nopresh.apetrovic.com/internal/domain"
+	"nopresh.apetrovic.com/internal/domain/user"
 	"nopresh.apetrovic.com/internal/utils/auth"
 )
 
