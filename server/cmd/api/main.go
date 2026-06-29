@@ -8,11 +8,8 @@ import (
 	"os"
 	"time"
 
-	"connectrpc.com/grpcreflect"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"nopresh.apetrovic.com/gen/greet/v1/greetv1connect"
-	"nopresh.apetrovic.com/gen/proto/auth/v1/authv1connect"
 	"nopresh.apetrovic.com/internal/data"
 	bp "nopresh.apetrovic.com/internal/data/bloodpressure"
 	rt "nopresh.apetrovic.com/internal/data/refreshToken"
@@ -36,6 +33,7 @@ type db struct {
 }
 
 type app struct {
+	mux         *http.ServeMux
 	config      config
 	logger      *slog.Logger
 	models      data.Models
@@ -65,6 +63,7 @@ func main() {
 
 	jwt := auth.NewJWT(cfg.jwtSecret, cfg.jwtDuration)
 	app := &app{
+		mux:    http.NewServeMux(),
 		logger: logger,
 		config: cfg,
 		middlewares: Middlewares{
@@ -76,16 +75,9 @@ func main() {
 
 	api := app.routes()
 
-	reflector := grpcreflect.NewStaticReflector(
-		greetv1connect.GreetServiceName,
-		authv1connect.AuthServiceName,
-	)
+	app.RegisterReflection()
 
-	mux := http.NewServeMux()
-
-	mux.Handle(grpcreflect.NewHandlerV1(reflector))
-	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
-	mux.Handle("/api/", http.StripPrefix("/api", api))
+	app.mux.Handle("/api/", http.StripPrefix("/api", api))
 
 	p := new(http.Protocols)
 
@@ -96,7 +88,7 @@ func main() {
 
 	srv := http.Server{
 		Addr:      "127.0.0.1:5000",
-		Handler:   mux,
+		Handler:   app.mux,
 		Protocols: p,
 	}
 
