@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 	"nopresh.apetrovic.com/internal/data"
 	bp "nopresh.apetrovic.com/internal/data/bloodpressure"
+	"nopresh.apetrovic.com/internal/data/medication"
 	rt "nopresh.apetrovic.com/internal/data/refreshToken"
 	user "nopresh.apetrovic.com/internal/data/user"
 	"nopresh.apetrovic.com/internal/utils/auth"
@@ -59,7 +60,12 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	db.AutoMigrate(&user.UserDbo{}, &bp.BloodPressureDbo{}, &rt.RefreshTokenDbo{})
+	err = db.AutoMigrate(&user.UserDbo{}, &bp.BloodPressureDbo{}, &rt.RefreshTokenDbo{}, &medication.MedicationDbo{})
+
+	if err != nil {
+		logger.Error("couldn't migrate db")
+		panic(err)
+	}
 
 	jwt := auth.NewJWT(cfg.jwtSecret, cfg.jwtDuration)
 	app := &app{
@@ -73,9 +79,9 @@ func main() {
 		jwt:    jwt,
 	}
 
-	api := app.routes()
-
 	app.RegisterReflection()
+
+	api := app.routes()
 
 	app.mux.Handle("/api/", http.StripPrefix("/api", api))
 

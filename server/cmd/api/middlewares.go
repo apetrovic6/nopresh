@@ -11,7 +11,11 @@ import (
 	"nopresh.apetrovic.com/internal/utils/auth"
 )
 
-func WithCors(h http.Handler) http.Handler {
+type Middlewares struct {
+	jwt *auth.JWT
+}
+
+func (m *Middlewares) WithCors(h http.Handler) http.Handler {
 	middleware := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   connectcors.AllowedMethods(),
@@ -22,7 +26,7 @@ func WithCors(h http.Handler) http.Handler {
 	return middleware.Handler(h)
 }
 
-func (app *app) withTokenRefresh(next http.Handler) http.Handler {
+func (m *Middlewares) WithTokenRefresh(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		jwtCookie, jwtErr := r.Cookie("jwt")
 		refreshCookie, refreshErr := r.Cookie("refresh")
@@ -32,18 +36,18 @@ func (app *app) withTokenRefresh(next http.Handler) http.Handler {
 			return
 		}
 
-		if _, err := app.jwt.VerifyToken(jwtCookie.Value); err == nil {
+		if _, err := m.jwt.VerifyToken(jwtCookie.Value); err == nil {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		refreshClaims, err := app.jwt.VerifyToken(refreshCookie.Value)
+		refreshClaims, err := m.jwt.VerifyToken(refreshCookie.Value)
 		if err != nil {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		newToken, err := app.jwt.CreateToken(refreshClaims.ID, refreshClaims.Name, refreshClaims.Email)
+		newToken, err := m.jwt.CreateToken(refreshClaims.ID, refreshClaims.Name, refreshClaims.Email)
 		if err != nil {
 			next.ServeHTTP(w, r)
 			return
@@ -64,7 +68,7 @@ func (app *app) withTokenRefresh(next http.Handler) http.Handler {
 	})
 }
 
-func (app *app) authenticate(_ context.Context, req *http.Request) (any, error) {
+func (m *Middlewares) Authenticate(_ context.Context, req *http.Request) (any, error) {
 	allowList := map[string]struct{}{
 		authv1connect.AuthServiceRegisterProcedure:                       {},
 		authv1connect.AuthServiceLoginProcedure:                          {},
@@ -78,13 +82,13 @@ func (app *app) authenticate(_ context.Context, req *http.Request) (any, error) 
 		return nil, nil
 	}
 
-	token, refreshToken, err := app.jwt.ExtractTokens(req)
+	token, refreshToken, err := m.jwt.ExtractTokens(req)
 
 	if err != nil {
 		return nil, authn.Errorf("invalid authorization")
 	}
 
-	jwtClaims, refreshClaims, err := app.extractClaims(token, refreshToken)
+	jwtClaims, refreshClaims, err := m.jwt.ExtractClaims(token, refreshToken)
 
 	if err != nil {
 		return nil, authn.Errorf("invalid authorization")
