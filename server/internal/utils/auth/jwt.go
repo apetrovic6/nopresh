@@ -148,3 +148,18 @@ func (j *JWT) ExtractTokens(req *http.Request) (string, string, error) {
 	return jwtToken, refreshToken, nil
 
 }
+
+func (j *JWT) ExtractClaims(accessToken, refreshToken string) (*UserClaims, *UserClaims, error) {
+	accessClaims, accessErr := j.VerifyToken(accessToken)
+	refreshClaims, refreshErr := j.VerifyToken(refreshToken)
+
+	if refreshErr != nil {
+		return nil, nil, ErrCouldntVerifyRefreshToken
+	}
+
+	if accessErr != nil {
+		return nil, refreshClaims, ErrCouldntVerifyAccessToken
+	}
+
+	return accessClaims, refreshClaims, nil
+}
