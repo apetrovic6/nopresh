@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package proto.medication.v1;
+
+import "buf/validate/validate.proto";
+
+enum MEDICATIONMEAUSERMENT {
+  MEDICATIONMEAUSERMENT_UNSPECIFIED = 0;
+  MEDICATIONMEAUSERMENT_MG = 1;
+  MEDICATIONMEAUSERMENT_G = 2;
+} 
+
+message CreateRequest {
+  string name = 1 [
+  (buf.validate.field).string = {
+    min_len: 1
+    max_len: 50
+  },
+  (buf.validate.field).required = true
+  ];
+
+  float recommended_dosage = 2 [
+    (buf.validate.field).required = true
+  ];
+
+  MEDICATIONMEAUSERMENT dosage_measurment = 3 [
+    (buf.validate.field).required = true
+  ];
+  
+}
+
+message MedicationEntry {
+  uint32 id = 1;
+  string name = 2;
+  float recommended_dosage = 3;
+  MEDICATIONMEAUSERMENT dosage_measurment = 4; 
+}
+
+message CreateResponse {
+  MedicationEntry entry = 1;
+}
+
+service MedicationService {
+  rpc CreateMedication(CreateRequest) returns (CreateResponse) {}
+}

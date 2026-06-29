@@ -12,23 +12,9 @@ import (
 	greetv1 "nopresh.apetrovic.com/gen/greet/v1"
 	"nopresh.apetrovic.com/gen/greet/v1/greetv1connect"
 	"nopresh.apetrovic.com/gen/proto/auth/v1/authv1connect"
-	"nopresh.apetrovic.com/internal/utils/auth"
+	"nopresh.apetrovic.com/gen/proto/bloodpressure/v1/bloodpressurev1connect"
+	"nopresh.apetrovic.com/gen/proto/medication/v1/medicationv1connect"
 )
-
-func (app *app) extractClaims(accessToken, refreshToken string) (*auth.UserClaims, *auth.UserClaims, error) {
-	accessClaims, accessErr := app.jwt.VerifyToken(accessToken)
-	refreshClaims, refreshErr := app.jwt.VerifyToken(refreshToken)
-
-	if refreshErr != nil {
-		return nil, nil, auth.ErrCouldntVerifyRefreshToken
-	}
-
-	if accessErr != nil {
-		return nil, refreshClaims, auth.ErrCouldntVerifyAccessToken
-	}
-
-	return accessClaims, refreshClaims, nil
-}
 
 type GreetServer struct{}
 
@@ -55,8 +41,18 @@ func (app *app) routes() http.Handler {
 		connect.WithInterceptors(validate.NewInterceptor()),
 	))
 
-	middleware := authn.NewMiddleware(app.authenticate)
+	router.Handle(bloodpressurev1connect.NewBloodPressureServiceHandler(&BloodPressureServer{
+		models: app.models,
+		logger: app.logger,
+	}))
+
+	router.Handle(medicationv1connect.NewMedicationServiceHandler(&MedicationServer{
+		models: app.models,
+		logger: app.logger,
+	}))
+
+	middleware := authn.NewMiddleware(app.middlewares.Authenticate)
 	wrapped := middleware.Wrap(router)
 
-	return WithCors(app.withTokenRefresh(wrapped))
+	return app.middlewares.WithCors(app.middlewares.WithTokenRefresh(wrapped))
 }
