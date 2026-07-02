@@ -14,6 +14,7 @@ import (
 	bp "nopresh.apetrovic.com/internal/data/bloodpressure"
 	"nopresh.apetrovic.com/internal/data/medication"
 	rt "nopresh.apetrovic.com/internal/data/refreshToken"
+	"nopresh.apetrovic.com/internal/data/settings"
 	user "nopresh.apetrovic.com/internal/data/user"
 	"nopresh.apetrovic.com/internal/utils/auth"
 )
@@ -60,7 +61,7 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	err = db.AutoMigrate(&user.UserDbo{}, &bp.BloodPressureDbo{}, &rt.RefreshTokenDbo{}, &medication.MedicationDbo{})
+	err = db.AutoMigrate(&user.UserDbo{}, &bp.BloodPressureDbo{}, &rt.RefreshTokenDbo{}, &medication.MedicationDbo{}, &settings.SettingsDbo{})
 
 	if err != nil {
 		logger.Error("couldn't migrate db")
@@ -79,11 +80,8 @@ func main() {
 		jwt:    jwt,
 	}
 
-	app.RegisterReflection()
-
-	api := app.routes()
-
-	app.mux.Handle("/api/", http.StripPrefix("/api", api))
+	app.registerReflection()
+	app.registerRoutes()
 
 	p := new(http.Protocols)
 

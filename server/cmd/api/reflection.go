@@ -8,7 +8,7 @@ import (
 	"nopresh.apetrovic.com/gen/proto/medication/v1/medicationv1connect"
 )
 
-func (app *app) RegisterReflection() {
+func (app *app) registerReflection() {
 
 	reflector := grpcreflect.NewStaticReflector(
 		greetv1connect.GreetServiceName,

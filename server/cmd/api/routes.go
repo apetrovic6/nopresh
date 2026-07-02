@@ -56,3 +56,8 @@ func (app *app) routes() http.Handler {
 
 	return app.middlewares.WithCors(app.middlewares.WithTokenRefresh(wrapped))
 }
+
+func (app *app) registerRoutes() {
+	api := app.routes()
+	app.mux.Handle("/api/", http.StripPrefix("/api", api))
+}
