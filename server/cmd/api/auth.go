@@ -105,7 +105,7 @@ func (s *AuthServer) Login(
 		return nil, err
 	}
 
-	refreshExpiry := time.Now().Add(30 * time.Hour)
+	refreshExpiry := time.Now().Add(30 * 24 * time.Hour)
 
 	refreshTokenString, uuid, err := s.jwt.CreateRefreshToken(user.ID, user.Name, user.Email, refreshExpiry)
 
