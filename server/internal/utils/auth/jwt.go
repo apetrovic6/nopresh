@@ -121,7 +121,7 @@ func (j *JWT) ExtractTokens(req *http.Request) (string, string, error) {
 	jwtToken := ""
 	refreshToken := ""
 
-	if cookie, err := req.Cookie("jwt"); err == nil {
+	if cookie, err := req.Cookie("jwt"); err == nil && cookie.Value != "" {
 		jwtToken = cookie.Value
 	} else if t, ok := authn.BearerToken(req); ok {
 		jwtToken = t
@@ -131,11 +131,7 @@ func (j *JWT) ExtractTokens(req *http.Request) (string, string, error) {
 		return "", "", ErrCouldntVerifyAccessToken
 	}
 
-	if cookie, err := req.Cookie("refresh"); err == nil {
-		refreshToken = cookie.Value
-	}
-
-	if cookie, err := req.Cookie("refresh"); err == nil {
+	if cookie, err := req.Cookie("refresh"); err == nil && cookie.Value != "" {
 		refreshToken = cookie.Value
 	} else if t, ok := authn.BearerToken(req); ok {
 		refreshToken = t
@@ -146,7 +142,6 @@ func (j *JWT) ExtractTokens(req *http.Request) (string, string, error) {
 	}
 
 	return jwtToken, refreshToken, nil
-
 }
 
 func (j *JWT) ExtractClaims(accessToken, refreshToken string) (*UserClaims, *UserClaims, error) {

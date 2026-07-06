@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"net/http"
 	"time"
 
 	"connectrpc.com/authn"
@@ -19,6 +20,26 @@ type AuthServer struct {
 	models data.Models
 	logger *slog.Logger
 	jwt    *auth.JWT
+}
+
+func setJwtCookies(header http.Header, accessToken, refreshToken string) {
+	header.Set("Set-Cookie", (&http.Cookie{
+		Name:     "jwt",
+		Value:    accessToken,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		MaxAge:   900,
+	}).String())
+
+	header.Add("Set-Cookie", (&http.Cookie{
+		Name:     "refresh",
+		Value:    refreshToken,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		MaxAge:   2592000,
+	}).String())
 }
 
 func (s *AuthServer) Register(
@@ -70,10 +91,7 @@ func (s *AuthServer) Register(
 		RefreshToken: refreshToken.RefreshToken,
 	})
 
-	res.Header().Set("Set-Cookie",
-		"jwt="+accessToken+"; HttpOnly; SameSite=Lax; Path=/")
-	res.Header().Add("Set-Cookie",
-		"refresh="+refreshToken.RefreshToken+"; HttpOnly; SameSite=Lax; Path=/")
+	setJwtCookies(res.Header(), accessToken, refreshTokenString)
 
 	return res, nil
 }
@@ -126,10 +144,7 @@ func (s *AuthServer) Login(
 		RefreshToken: refreshToken.RefreshToken,
 	})
 
-	res.Header().Set("Set-Cookie",
-		"jwt="+accessToken+"; HttpOnly; SameSite=Lax; Path=/")
-	res.Header().Add("Set-Cookie",
-		"refresh="+refreshToken.RefreshToken+"; HttpOnly; SameSite=Lax; Path=/")
+	setJwtCookies(res.Header(), accessToken, refreshTokenString)
 
 	return res, nil
 }
@@ -149,8 +164,19 @@ func (s *AuthServer) Logout(ctx context.Context, req *connect.Request[emptypb.Em
 
 	res := connect.NewResponse(&emptypb.Empty{})
 
-	res.Header().Add("Set-Cookie", "jwt=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0")
-	res.Header().Add("Set-Cookie", "refresh=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0")
+	deleteCookie := func(name string) string {
+		return (&http.Cookie{
+			Name:     name,
+			Value:    "",
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+			Path:     "/",
+			MaxAge:   -1,
+		}).String()
+	}
+
+	res.Header().Add("Set-Cookie", deleteCookie("jwt"))
+	res.Header().Add("Set-Cookie", deleteCookie("refresh"))
 
 	return res, nil
 }
