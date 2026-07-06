@@ -14,6 +14,7 @@ import (
 	"nopresh.apetrovic.com/gen/proto/auth/v1/authv1connect"
 	"nopresh.apetrovic.com/gen/proto/bloodpressure/v1/bloodpressurev1connect"
 	"nopresh.apetrovic.com/gen/proto/medication/v1/medicationv1connect"
+	"nopresh.apetrovic.com/gen/proto/settings/v1/settingsv1connect"
 )
 
 type GreetServer struct{}
@@ -47,6 +48,11 @@ func (app *app) routes() http.Handler {
 	}))
 
 	router.Handle(medicationv1connect.NewMedicationServiceHandler(&MedicationServer{
+		models: app.models,
+		logger: app.logger,
+	}))
+
+	router.Handle(settingsv1connect.NewSettingsServiceHandler(&SettingsServer{
 		models: app.models,
 		logger: app.logger,
 	}))
