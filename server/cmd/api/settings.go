@@ -37,7 +37,7 @@ func (s *SettingsServer) CreateSettings(
 		uint(req.Msg.DefaultMedicationId),
 	)
 
-	settingsEntry, err := s.models.Settings.Insert(settingsEntry)
+	settingsEntry, err := s.models.Settings.Insert(ctx, settingsEntry)
 
 	if err != nil {
 		s.logger.Error("couldn't save user settings entry",
@@ -76,6 +76,43 @@ func (s *SettingsServer) GetSettings(
 	res := connect.NewResponse(&settingsv1.GetSettingsResponse{
 		Settings: settingsFromDomainObject(settings),
 	})
+
+	return res, nil
+}
+
+func (s *SettingsServer) UpdateSettings(
+	ctx context.Context,
+	req SettReq[settingsv1.UpdateSettingsRequest],
+) (SettRes[settingsv1.UpdateSettingsResponse], error) {
+	userCtx, ok := authn.GetInfo(ctx).(*auth.AuthInfo)
+
+	if !ok {
+		return nil, ConnErrMissingAuthInfo
+	}
+
+	mask := req.Msg.UpdateMask
+
+	if mask == nil || len(mask.Paths) == 0 {
+		res := connect.NewResponse(&settingsv1.UpdateSettingsResponse{})
+		return res, nil
+	}
+
+	var input settings.UpdateDto
+
+	for _, path := range mask.Paths {
+		switch path {
+		case "default_medication_id":
+			input.DefaultMedicationId = new(uint(req.Msg.DefaultMedicationId))
+		}
+	}
+
+	_, err := s.models.Settings.Update(ctx, userCtx.JwtClaims.ID, input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	res := connect.NewResponse(&settingsv1.UpdateSettingsResponse{})
 
 	return res, nil
 }

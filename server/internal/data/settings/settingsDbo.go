@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"nopresh.apetrovic.com/internal/domain/settings"
 )
 
@@ -24,9 +25,7 @@ func (s *SettingsDbo) TableName() string {
 	return "settings"
 }
 
-func (s *SettingsModel) Insert(settings *settings.Settings) (*settings.Settings, error) {
-	ctx := context.Background()
-
+func (s *SettingsModel) Insert(ctx context.Context, settings *settings.Settings) (*settings.Settings, error) {
 	settingsDbo := toDbo(settings)
 
 	err := gorm.G[SettingsDbo](s.DB).Create(ctx, settingsDbo)
@@ -40,6 +39,29 @@ func (s *SettingsModel) Insert(settings *settings.Settings) (*settings.Settings,
 	}
 
 	return toDomain(settingsDbo), nil
+}
+
+func (s *SettingsModel) Update(ctx context.Context, userId uint, updateDto settings.UpdateDto) (*settings.Settings, error) {
+	updates := map[string]any{}
+
+	if updateDto.DefaultMedicationId != nil {
+		updates["default_medication_id"] = *updateDto.DefaultMedicationId
+	}
+
+	rowsAffected, err := gorm.G[SettingsDbo](s.DB).
+		Where("user_id = ?", userId).
+		Set(clause.Assignments(updates)).
+		Update(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if rowsAffected == 0 {
+		return nil, errors.New("settings entry not found")
+	}
+
+	return nil, nil
 }
 
 func (s *SettingsModel) GetByUserId(userId uint) (*settings.Settings, error) {

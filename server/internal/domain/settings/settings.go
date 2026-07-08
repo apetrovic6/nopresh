@@ -19,3 +19,7 @@ func New(id, userId, medicationId uint) *Settings {
 		DefaultMedicationId: medicationId,
 	}
 }
+
+type UpdateDto struct {
+	DefaultMedicationId *uint
+}
