@@ -28,7 +28,7 @@ func (s *SettingsServer) CreateSettings(
 	userCtx, ok := authn.GetInfo(ctx).(*auth.AuthInfo)
 
 	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("missing auth info"))
+		return nil, ConnErrMissingAuthInfo
 	}
 
 	settingsEntry := settings.New(
@@ -61,7 +61,7 @@ func (s *SettingsServer) GetSettings(
 	userCtx, ok := authn.GetInfo(ctx).(*auth.AuthInfo)
 
 	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("missing auth info"))
+		return nil, ConnErrMissingAuthInfo
 	}
 
 	settings, err := s.models.Settings.GetByUserId(userCtx.JwtClaims.ID)

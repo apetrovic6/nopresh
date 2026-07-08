@@ -28,7 +28,7 @@ func (ms *MedicationServer) CreateMedication(
 	userCtx, ok := authn.GetInfo(ctx).(*auth.AuthInfo)
 
 	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("missing auth info"))
+		return nil, ConnErrMissingAuthInfo
 	}
 
 	newMedEntry := medication.New(
