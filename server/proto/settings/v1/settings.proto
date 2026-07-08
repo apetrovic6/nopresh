@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package proto.settings.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/field_mask.proto";
+
+
+message Settings {
+  uint32 default_medication_id = 1;
+}
+
+message CreateSettingsRequest {
+  uint32 default_medication_id = 1;
+}
+
+message CreateSettingsResponse {
+  Settings settings = 1;
+}
+
+message GetSettingsRequest {}
+
+message GetSettingsResponse {
+  Settings settings = 1;
+}
+
+message UpdateSettingsRequest {
+  uint32 default_medication_id = 1;
+
+  google.protobuf.FieldMask update_mask = 5;
+}
+
+message UpdateSettingsResponse {
+
+}
+
+service SettingsService {
+  rpc CreateSettings(CreateSettingsRequest) returns (CreateSettingsResponse) {}
+  rpc GetSettings(GetSettingsRequest) returns (GetSettingsResponse) {}
+  rpc UpdateSettings(UpdateSettingsRequest) returns (UpdateSettingsResponse) {}
+}
+
+
