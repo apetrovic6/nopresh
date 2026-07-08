@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package proto.medication.v1;
+
+
+message Medication {
+  uint32 id = 1;
+  string name = 2;
+  float recommended_dosage = 3;
+  MEDICATIONMEAUSEREMENT dosage_measurement = 4; 
+}
+
+enum MEDICATIONMEAUSEREMENT {
+  MEDICATIONMEAUSEREMENT_UNSPECIFIED = 0;
+  MEDICATIONMEAUSEREMENT_MG = 1;
+  MEDICATIONMEAUSEREMENT_G = 2;
+} 

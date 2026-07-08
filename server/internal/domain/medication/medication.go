@@ -9,43 +9,41 @@ type Medication struct {
 	Name              string
 	RecommendedDosage float32
 	UserId            uint
-	DosageMeasurment  Measurment
+	DosageMeasurement Measurement
 }
 
-type Measurment string
+// UpdateInput describes a partial update of a Medication. A nil field means
+// "leave this column unchanged"; a non-nil field is applied. The transport layer
+// populates it from a protobuf field mask; the data layer consumes it.
+type UpdateInput struct {
+	Name              *string
+	RecommendedDosage *float32
+	DosageMeasurement *Measurement
+}
+
+type Measurement string
 
 const (
-	NA Measurment = "N/A"
-	Mg Measurment = "mg"
-	G  Measurment = "g"
+	NA Measurement = "N/A"
+	Mg Measurement = "mg"
+	G  Measurement = "g"
 )
 
-func New(id uint, name string, recommendedDosage float32, dosageMeasument Measurment, userId uint) *Medication {
+func New(id uint, name string, recommendedDosage float32, dosageMeasument Measurement, userId uint) *Medication {
 	return &Medication{
 		ID:                id,
 		Name:              name,
 		RecommendedDosage: recommendedDosage,
 		UserId:            userId,
-		DosageMeasurment:  dosageMeasument,
+		DosageMeasurement: dosageMeasument,
 	}
 }
 
-func ToPbMeasurment(m Measurment) medicationv1.MEDICATIONMEAUSERMENT {
+func ToDomainMeasurement(m medicationv1.MEDICATIONMEAUSEREMENT) Measurement {
 	switch m {
-	case Mg:
-		return medicationv1.MEDICATIONMEAUSERMENT_MEDICATIONMEAUSERMENT_MG
-	case G:
-		return medicationv1.MEDICATIONMEAUSERMENT_MEDICATIONMEAUSERMENT_G
-	default:
-		return medicationv1.MEDICATIONMEAUSERMENT_MEDICATIONMEAUSERMENT_UNSPECIFIED
-	}
-}
-
-func ToDomainMeasurment(m medicationv1.MEDICATIONMEAUSERMENT) Measurment {
-	switch m {
-	case medicationv1.MEDICATIONMEAUSERMENT_MEDICATIONMEAUSERMENT_G:
+	case medicationv1.MEDICATIONMEAUSEREMENT_MEDICATIONMEAUSEREMENT_MG:
 		return Mg
-	case medicationv1.MEDICATIONMEAUSERMENT_MEDICATIONMEAUSERMENT_MG:
+	case medicationv1.MEDICATIONMEAUSEREMENT_MEDICATIONMEAUSEREMENT_G:
 		return G
 	default:
 		return NA

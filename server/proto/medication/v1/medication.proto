@@ -3,14 +3,12 @@ syntax = "proto3";
 package proto.medication.v1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "proto/medication/v1/medication_entry.proto";
 
-enum MEDICATIONMEAUSERMENT {
-  MEDICATIONMEAUSERMENT_UNSPECIFIED = 0;
-  MEDICATIONMEAUSERMENT_MG = 1;
-  MEDICATIONMEAUSERMENT_G = 2;
-} 
 
-message CreateRequest {
+message CreateMedicationRequest {
   string name = 1 [
   (buf.validate.field).string = {
     min_len: 1
@@ -23,23 +21,56 @@ message CreateRequest {
     (buf.validate.field).required = true
   ];
 
-  MEDICATIONMEAUSERMENT dosage_measurment = 3 [
+  MEDICATIONMEAUSEREMENT dosage_measurement = 3 [
     (buf.validate.field).required = true
   ];
   
 }
 
-message MedicationEntry {
+
+message CreateMedicationResponse {
+  Medication medication = 1;
+}
+
+message GetMedicationRequest {
+  uint32 id = 1;
+}
+
+message GetMedicationResponse {
+  Medication medication = 1;
+}
+
+
+message GetMedicationsRequest { }
+
+message GetMedicationsResponse {
+  repeated Medication medications = 1;
+}
+
+message DeleteMedicationRequest {
+  uint32 id = 1;
+}
+
+message UpdateMedicationRequest{
   uint32 id = 1;
   string name = 2;
   float recommended_dosage = 3;
-  MEDICATIONMEAUSERMENT dosage_measurment = 4; 
+  MEDICATIONMEAUSEREMENT  dosage_measurement = 4;
+
+  google.protobuf.FieldMask update_mask = 5;
 }
 
-message CreateResponse {
-  MedicationEntry entry = 1;
+message UpdateMedicationResponse{
+    Medication medication = 1;
 }
 
 service MedicationService {
-  rpc CreateMedication(CreateRequest) returns (CreateResponse) {}
+  rpc CreateMedication(CreateMedicationRequest) returns (CreateMedicationResponse) {}
+  rpc GetMedication(GetMedicationRequest) returns (GetMedicationResponse) {}
+  rpc GetMedications(GetMedicationsRequest) returns (GetMedicationsResponse) {}
+  rpc UpdateMedication(UpdateMedicationRequest) returns (UpdateMedicationResponse) {}
+
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  rpc DeleteMedication(DeleteMedicationRequest) returns (google.protobuf.Empty) {}
 }
