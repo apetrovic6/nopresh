@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as DemoIndexRouteImport } from './routes/demo/index'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
@@ -29,11 +28,6 @@ import { Route as DemoFormAddressRouteImport } from './routes/demo/form.address'
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -107,7 +101,6 @@ const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
-  '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
   '/blood-pressure': typeof AppBloodPressureRoute
   '/medication': typeof AppMedicationRoute
@@ -122,7 +115,6 @@ export interface FileRoutesByFullPath {
   '/demo/form/simple': typeof DemoFormSimpleRoute
 }
 export interface FileRoutesByTo {
-  '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
   '/blood-pressure': typeof AppBloodPressureRoute
   '/medication': typeof AppMedicationRoute
@@ -140,7 +132,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
-  '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
   '/_app/blood-pressure': typeof AppBloodPressureRoute
   '/_app/medication': typeof AppMedicationRoute
@@ -160,7 +151,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/about'
     | '/auth'
     | '/blood-pressure'
     | '/medication'
@@ -175,7 +165,6 @@ export interface FileRouteTypes {
     | '/demo/form/simple'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/about'
     | '/auth'
     | '/blood-pressure'
     | '/medication'
@@ -192,7 +181,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
-    | '/about'
     | '/auth'
     | '/_app/blood-pressure'
     | '/_app/medication'
@@ -211,7 +199,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
-  AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRouteWithChildren
   DemoStoreRoute: typeof DemoStoreRoute
   DemoTableRoute: typeof DemoTableRoute
@@ -228,13 +215,6 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -370,7 +350,6 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
-  AboutRoute: AboutRoute,
   AuthRoute: AuthRouteWithChildren,
   DemoStoreRoute: DemoStoreRoute,
   DemoTableRoute: DemoTableRoute,

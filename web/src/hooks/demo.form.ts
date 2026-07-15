@@ -1,11 +1,14 @@
 import { createFormHook } from '@tanstack/react-form'
 
 import {
+    DateRangePicker,
+    DateTimePicker,
   DosageMeasurementPicker,
   MedicationPicker,
   PasswordField,
   Select,
   SubscribeButton,
+  Switch,
   TextArea,
   TextField,
   UnitInput,
@@ -21,6 +24,9 @@ export const { useAppForm } = createFormHook({
     TextArea,
     MedicationPicker,
     DosageMeasurementPicker,
+    Switch,
+    DateTimePicker,
+    DateRangePicker,
   },
   formComponents: {
     SubscribeButton,
