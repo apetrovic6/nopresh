@@ -7,12 +7,17 @@ import * as ShadcnSelect from '#/components/ui/select'
 import { Slider as ShadcnSlider } from '#/components/ui/slider'
 import { Switch as ShadcnSwitch } from '#/components/ui/switch'
 import { Label } from '#/components/ui/label'
-import { Field, FieldLabel } from './ui/field'
-import type { HTMLInputTypeAttribute } from 'react'
+import { Field, FieldGroup, FieldLabel } from './ui/field'
 import { useSelector } from '@tanstack/react-store'
 import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group'
-import { MEDICATIONMEAUSEREMENTSchema, type Medication } from '#/gen/proto/medication/v1/medication_pb'
+import { MEDICATIONMEAUSEREMENTSchema, type Medication } from '#/gen/proto/medication/v1/medication_entry_pb'
 import { measurementLabels } from './medication/medication-utils'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+import { Calendar } from './ui/calendar'
+import { CalendarIcon, ChevronDownIcon, XIcon } from 'lucide-react'
+import { useState, type ChangeEvent } from 'react'
+import { format, parse, set } from "date-fns"
+import type { DateRange } from 'react-day-picker'
 
 export function SubscribeButton({ label }: { label: string }) {
   const form = useFormContext()
@@ -83,17 +88,17 @@ export function TextField({
   )
 }
 
+interface UnitInputProps extends React.ComponentProps<'input'> {
+  label: string,
+  unit?: string,
+}
+
 export function UnitInput({
   label,
-  placeholder,
   unit,
-}: {
-  label: string
-  placeholder?: string
-  type?: HTMLInputTypeAttribute,
-  unit?: string
-}) {
-  const field = useFieldContext<string>()
+  ...props
+}: UnitInputProps) {
+  const field = useFieldContext<string | number>()
   const errors = useSelector(field.store, (state) => state.meta.errors)
 
   return (
@@ -107,10 +112,10 @@ export function UnitInput({
       <InputGroup>
         <InputGroupInput
           type="number"
+          {...props}
           value={field.state.value}
-          placeholder={placeholder}
           onBlur={field.handleBlur}
-          onChange={(e) => field.handleChange(e.target.value)}
+          onChange={(e) => field.handleChange(e.target.valueAsNumber)}
         />
         <InputGroupAddon align="inline-end">
           {unit}
@@ -235,7 +240,7 @@ export function MedicationPicker({ label, values }: { label: string, values: Med
   )
 }
 
-export function DosageMeasurementPicker({ label }: {label:string}) {
+export function DosageMeasurementPicker({ label }: { label: string }) {
   const vals =
     MEDICATIONMEAUSEREMENTSchema.values
       .filter(x => x.number !== 0)
@@ -288,3 +293,148 @@ export function Switch({ label }: { label: string }) {
     </div>
   )
 }
+
+export function DateTimePicker({ label }: { label: string }) {
+  const field = useFieldContext<Date | undefined>()
+  const errors = useSelector(field.store, (state) => state.meta.errors)
+  const [open, setOpen] = useState(false)
+
+  function setTime(e: ChangeEvent<HTMLInputElement>) {
+    const time = e.target.value;
+    if (!time) return;
+
+    field.handleChange((date) =>
+      set(parse(time, "HH:mm", date ?? new Date()), { seconds: 0, milliseconds: 0 }),
+    );
+  }
+
+  return (
+    <FieldGroup className="mx-auto max-w-xs flex-row">
+      <Field>
+        <FieldLabel htmlFor="date-picker-optional">{label}</FieldLabel>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" id="date-picker-optional" className="w-32 justify-between font-normal">
+              {field.state.value ? format(field.state.value, "PPP") : "Select date"}
+              <ChevronDownIcon />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={field.state.value}
+              captionLayout="dropdown"
+              defaultMonth={field.state.value ?? new Date()}
+              onSelect={(date) => {
+                // keep the existing time-of-day when only the day changes
+                field.handleChange((prev) =>
+                  date && prev
+                    ? set(date, { hours: prev.getHours(), minutes: prev.getMinutes(), seconds: 0, milliseconds: 0 })
+                    : date,
+                )
+                setOpen(false)
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+      </Field>
+      <Field className="w-32">
+        <FieldLabel htmlFor="time-picker-optional">Time</FieldLabel>
+        <Input
+          type="time"
+          id="time-picker-optional"
+          className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          value={field.state.value ? format(field.state.value, "HH:mm") : ""}
+          onChange={setTime}
+        />
+      </Field>
+      {field.state.meta.isTouched && <ErrorMessages errors={errors} />}
+    </FieldGroup>
+  )
+}
+
+interface DateRangePickerProps {
+  label: string,
+  fieldGroupClass?: string,
+  numberOfMonths?: number,
+  onClear?: () => void,
+}
+
+export function DateRangePicker({ label, fieldGroupClass, onClear: onClearCallback, numberOfMonths = 2 }: DateRangePickerProps) {
+  const field = useFieldContext<DateRange | undefined>();
+
+  const errors = useSelector(field.store, (state) => state.meta.errors)
+  const [open, setOpen] = useState(false)
+
+  function onDateRangeChange(dateRange: DateRange | undefined) {
+    field.handleChange(dateRange);
+  }
+
+
+  function onClear(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+    event.preventDefault();
+    field.clearValues();
+    onClearCallback?.();
+  }
+
+  const shouldShowClearButton = field.state.value !== undefined
+    && field.state.value.from !== undefined
+    &&  field.state.value.to !== undefined;
+  
+  const clearButton = <Button
+    type="button"
+    onClick={onClear}
+    variant="ghost"
+    size="icon"
+    className="absolute right-1 top-1/2 size-7 -translate-y-1/2"
+  >
+    <XIcon />
+  </Button>
+
+  return (
+    <FieldGroup className={fieldGroupClass}>
+      <Field >
+        <FieldLabel htmlFor="date-picker-optional">{label}</FieldLabel>
+        <div className="relative">
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" id="date-picker-optional" className="w-full px-2.5 pr-9 flex justify-between font-normal">
+                <span className='flex space-x-2'>
+                  <CalendarIcon className='self-center' />
+                  {field.state.value?.from ? (
+                    field.state.value.to ? (
+                      <>
+                        <>
+                          {format(field.state.value.from, "LLL dd, y")} -{" "}
+                          {format(field.state.value.to, "LLL dd, y")}
+                        </>
+                      </>
+                    ) : (
+                      <>
+                        {format(field.state.value.from, "LLL dd, y")}
+                      </>
+                    )
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+              <Calendar
+                mode="range"
+                selected={field.state.value}
+                captionLayout="dropdown"
+                numberOfMonths={numberOfMonths}
+                onSelect={onDateRangeChange}
+              />
+            </PopoverContent>
+          </Popover>
+          {shouldShowClearButton && clearButton}
+        </div>
+      </Field>
+      {field.state.meta.isTouched && <ErrorMessages errors={errors} />}
+    </FieldGroup>
+  )
+}
+
