@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"connectrpc.com/authn"
@@ -12,7 +13,15 @@ import (
 )
 
 type Middlewares struct {
-	jwt *auth.JWT
+	jwt    *auth.JWT
+	logger *slog.Logger
+}
+
+func NewMiddleware(jwt *auth.JWT, logger *slog.Logger) Middlewares {
+	return Middlewares{
+		jwt:    jwt,
+		logger: logger,
+	}
 }
 
 func (m *Middlewares) WithCors(h http.Handler) http.Handler {
@@ -31,16 +40,21 @@ func (m *Middlewares) WithTokenRefresh(next http.Handler) http.Handler {
 		jwtCookie, jwtErr := r.Cookie("jwt")
 		refreshCookie, refreshErr := r.Cookie("refresh")
 
-		if jwtErr != nil || refreshErr != nil {
+		// No refresh cookie or empty value — nothing we can do.
+		if refreshErr != nil || refreshCookie.Value == "" {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		if _, err := m.jwt.VerifyToken(jwtCookie.Value); err == nil {
-			next.ServeHTTP(w, r)
-			return
+		// JWT present and valid — no refresh needed.
+		if jwtErr == nil && jwtCookie.Value != "" {
+			if _, err := m.jwt.VerifyToken(jwtCookie.Value); err == nil {
+				next.ServeHTTP(w, r)
+				return
+			}
 		}
 
+		// JWT is missing or expired — try to issue a new one from the refresh token.
 		refreshClaims, err := m.jwt.VerifyToken(refreshCookie.Value)
 		if err != nil {
 			next.ServeHTTP(w, r)
@@ -53,15 +67,20 @@ func (m *Middlewares) WithTokenRefresh(next http.Handler) http.Handler {
 			return
 		}
 
+		m.logger.Info("WithTokenRefresh: issued new jwt from refresh token")
+
 		http.SetCookie(w, &http.Cookie{
 			Name:     "jwt",
 			Value:    newToken,
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 			Path:     "/",
+			MaxAge:   900,
 		})
 
-		// Update the request so the authn middleware sees the new token
+		// Apply the fresh token to the in-flight request too, so the downstream
+		// Authenticate handler sees it on this same request instead of 401'ing
+		// and forcing the client to retry.
 		r.Header.Set("Cookie", "jwt="+newToken+"; refresh="+refreshCookie.Value)
 
 		next.ServeHTTP(w, r)
@@ -85,13 +104,19 @@ func (m *Middlewares) Authenticate(_ context.Context, req *http.Request) (any, e
 	token, refreshToken, err := m.jwt.ExtractTokens(req)
 
 	if err != nil {
-		return nil, authn.Errorf("invalid authorization")
+		m.logger.Error("invalid authorization. Couldn't extract token",
+			"error", err.Error(),
+		)
+		return nil, authn.Errorf("invalid authorization. Couldn't extract token")
 	}
 
 	jwtClaims, refreshClaims, err := m.jwt.ExtractClaims(token, refreshToken)
 
 	if err != nil {
-		return nil, authn.Errorf("invalid authorization")
+		m.logger.Error("invalid authorization. Couldn't extract claims",
+			"error", err.Error(),
+		)
+		return nil, authn.Errorf("invalid authorization. Couldn't extract claims")
 	}
 
 	return &auth.AuthInfo{

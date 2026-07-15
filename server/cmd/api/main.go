@@ -69,15 +69,14 @@ func main() {
 	}
 
 	jwt := auth.NewJWT(cfg.jwtSecret, cfg.jwtDuration)
+
 	app := &app{
-		mux:    http.NewServeMux(),
-		logger: logger,
-		config: cfg,
-		middlewares: Middlewares{
-			jwt: jwt,
-		},
-		models: data.NewModels(db),
-		jwt:    jwt,
+		mux:         http.NewServeMux(),
+		logger:      logger,
+		config:      cfg,
+		middlewares: NewMiddleware(jwt, logger),
+		models:      data.NewModels(db),
+		jwt:         jwt,
 	}
 
 	app.registerReflection()
