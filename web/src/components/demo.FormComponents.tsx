@@ -18,6 +18,10 @@ import { CalendarIcon, ChevronDownIcon, XIcon } from 'lucide-react'
 import { useState, type ChangeEvent } from 'react'
 import { format, parse, set } from "date-fns"
 import type { DateRange } from 'react-day-picker'
+import { ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList, Combobox as ShadcnCombobox } from './ui/combobox'
+import type { Group } from '@base-ui/react/internals/resolveValueLabel'
+import type { ComboboxRoot } from '@base-ui/react'
+import { TZDate } from '@date-fns/tz'
 
 export function SubscribeButton({ label }: { label: string }) {
   const form = useFormContext()
@@ -185,6 +189,50 @@ export function TextArea({
   )
 }
 
+interface ComboboxProps {
+  label: string
+  placeholder?: string,
+  noItemsMessage?: string,
+  items?: any[] | Group<any>[] | undefined,
+}
+
+export function Combobox<T>({ label, items, placeholder, noItemsMessage = "No items found." }: ComboboxProps) {
+  const field = useFieldContext<T>()
+  const errors = useSelector(field.store, (state) => state.meta.errors)
+
+  function onValueChange(value: T, _: ComboboxRoot.ChangeEventDetails): void {
+    console.log("Combobox: ", value);
+    field.handleChange(value);
+  }
+
+  return (
+    <Field>
+
+      <Label
+        htmlFor={label}
+        className="mb-2 text-sm font-semibold text-[var(--sea-ink)]"
+      >
+        {label}
+      </Label>
+
+      <ShadcnCombobox items={items} value={field.state.value} onValueChange={(value, details) => onValueChange(value as T, details)}>
+        <ComboboxInput placeholder={placeholder} />
+        <ComboboxContent>
+          <ComboboxEmpty>{noItemsMessage}</ComboboxEmpty>
+          <ComboboxList>
+            {(item) => (
+              <ComboboxItem key={item} value={item}>
+                {item}
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </ShadcnCombobox>
+      {field.state.meta.isTouched && <ErrorMessages errors={errors} />}
+    </Field>
+  )
+}
+
 export function Select({
   label,
   values,
@@ -294,8 +342,8 @@ export function Switch({ label }: { label: string }) {
   )
 }
 
-export function DateTimePicker({ label }: { label: string }) {
-  const field = useFieldContext<Date | undefined>()
+export function DateTimePicker({ label, tz }: { label: string, tz?: string }) {
+  const field = useFieldContext<TZDate | undefined>()
   const errors = useSelector(field.store, (state) => state.meta.errors)
   const [open, setOpen] = useState(false)
 
@@ -304,8 +352,23 @@ export function DateTimePicker({ label }: { label: string }) {
     if (!time) return;
 
     field.handleChange((date) =>
-      set(parse(time, "HH:mm", date ?? new Date()), { seconds: 0, milliseconds: 0 }),
+      set(parse(time, "HH:mm", date ?? new TZDate(new Date(), tz)), { seconds: 0, milliseconds: 0 }),
     );
+  }
+
+  function onSelect(date: Date | undefined) {
+    if (!date) {
+      setOpen(false)
+      return
+    }
+
+    field.handleChange((prev) =>
+      prev
+        ? set(prev, { year: date.getFullYear(), month: date.getMonth(), date: date.getDate() })
+        : new TZDate(date, tz),
+    )
+
+    setOpen(false)
   }
 
   return (
@@ -324,16 +387,8 @@ export function DateTimePicker({ label }: { label: string }) {
               mode="single"
               selected={field.state.value}
               captionLayout="dropdown"
-              defaultMonth={field.state.value ?? new Date()}
-              onSelect={(date) => {
-                // keep the existing time-of-day when only the day changes
-                field.handleChange((prev) =>
-                  date && prev
-                    ? set(date, { hours: prev.getHours(), minutes: prev.getMinutes(), seconds: 0, milliseconds: 0 })
-                    : date,
-                )
-                setOpen(false)
-              }}
+              defaultMonth={field.state.value ?? new TZDate()}
+              onSelect={onSelect}
             />
           </PopoverContent>
         </Popover>
@@ -379,8 +434,8 @@ export function DateRangePicker({ label, fieldGroupClass, onClear: onClearCallba
 
   const shouldShowClearButton = field.state.value !== undefined
     && field.state.value.from !== undefined
-    &&  field.state.value.to !== undefined;
-  
+    && field.state.value.to !== undefined;
+
   const clearButton = <Button
     type="button"
     onClick={onClear}
