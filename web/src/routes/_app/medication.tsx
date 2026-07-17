@@ -1,5 +1,5 @@
 import Dialog from '#/components/dialog'
-import { CreateEditMedication } from '#/components/medication/create-medication'
+import { CreateEditMedication } from '#/components/medication/forms/create-medication'
 import MedicationTable from '#/components/medication/grid/data-table'
 import { Button } from '#/components/ui/button'
 import { createFileRoute } from '@tanstack/react-router'
@@ -11,6 +11,7 @@ export const Route = createFileRoute('/_app/medication')({
 
 
 function RouteComponent() {
+  const createEditFormId = "create-edit-medication"  ;
   const [openEdit, setOpenEdit] = useState(false);
 
   function onSuccess() {
@@ -37,9 +38,9 @@ function RouteComponent() {
       }
 
       submit={
-        <Button form="create-edit-medication" type="submit">Create</Button>
+        <Button form={createEditFormId} type="submit">Create</Button>
       }>
-      <CreateEditMedication formId="create-edit-medication" onSuccess={onSuccess} />
+      <CreateEditMedication formId={createEditFormId} onSuccess={onSuccess} />
     </Dialog>
   </div>
 }

@@ -8,7 +8,7 @@ import z from "zod";
 import { queryClient, transport } from "#/integrations/connect";
 import { toast } from "sonner";
 import { BloodPressureEntrySchema, type BloodPressureEntry } from "#/gen/proto/bloodpressure/v1/bloodpressure_pb";
-import { findMedicationById, getMeasurementNameByMedId, getMedicationDosage, } from "../medication/medication-utils";
+import {  MedicationUtils, } from "../medication/medication-utils";
 import { timestampDate, timestampNow } from "@bufbuild/protobuf/wkt";
 import { startOfMinute, } from "date-fns";
 import { TZDate } from "@date-fns/tz";
@@ -61,7 +61,7 @@ export function CreateEditBp({ bpEntry, formId, onSuccess }: CreateEditBpProps) 
     diastolic: 0,
     systolic: 0,
     pulse: 0,
-    dosage: getMedicationDosage(settings.settings?.defaultMedicationId ?? 0, medications?.medications ?? []) ?? 0,
+    dosage: MedicationUtils.getDosage(settings.settings?.defaultMedicationId ?? 0, medications?.medications ?? []) ?? 0,
     dateTimeUtc: startOfMinute(new TZDate(new Date(), settings.settings?.timezone)),
     medication: (settings.settings?.defaultMedicationId ?? 0).toString(),
     medicationTaken: false,
@@ -210,7 +210,7 @@ export function CreateEditBp({ bpEntry, formId, onSuccess }: CreateEditBpProps) 
             {(field) => (
               <form.Subscribe selector={state => state.values.medication}>
                 {(medicationId) => {
-                  const medUnit = getMeasurementNameByMedId(Number(medicationId), medications?.medications ?? []);
+                  const medUnit = MedicationUtils.getMeasurementNameByMedId(Number(medicationId), medications?.medications ?? []);
                   return <field.UnitInput label="Medication dosage" min="0" step="0.1" unit={medUnit} />;
                 }}
               </form.Subscribe>
@@ -221,7 +221,7 @@ export function CreateEditBp({ bpEntry, formId, onSuccess }: CreateEditBpProps) 
             name="medication"
             listeners={{
               onChange: ({ value }) => {
-                const med = findMedicationById(Number(value), medications?.medications ?? []);
+                const med = MedicationUtils.findById(Number(value), medications?.medications ?? []);
                 form.setFieldValue("dosage", med?.recommendedDosage ?? 0);
               },
             }}

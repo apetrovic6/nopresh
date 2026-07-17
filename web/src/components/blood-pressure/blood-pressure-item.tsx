@@ -1,5 +1,5 @@
 import type { BloodPressureEntry } from "#/gen/proto/bloodpressure/v1/bloodpressure_pb"
-import { getMeasurementByEnum } from "../medication/medication-utils"
+import { MedicationUtils} from "../medication/medication-utils"
 import { Card, CardContent, CardHeader, } from "../ui/card"
 import { Checkbox } from "../ui/checkbox"
 import { Field, FieldContent, FieldGroup, FieldLabel } from "../ui/field"
@@ -84,7 +84,7 @@ export function BloodPressureItem({ item, onEdit, onDelete }: BloodPressureItemP
             <Field className="w-fit">
               <FieldLabel>Dosage</FieldLabel>
               <FieldContent>
-                {item.dosage}  {getMeasurementByEnum(item.medication?.dosageMeasurement ?? 0)}
+                {item.dosage}  {MedicationUtils.getMeasurementByEnum(item.medication?.dosageMeasurement ?? 0)}
               </FieldContent>
             </Field>
 
@@ -93,7 +93,7 @@ export function BloodPressureItem({ item, onEdit, onDelete }: BloodPressureItemP
           <FieldGroup className="flex self-end">
             <Field orientation="horizontal">
               <Checkbox id="medication-taken-checkbox" checked={item.medicationTaken} />
-              <Label htmlFor="medication-taken-checkbox">Medication Taken</Label>
+              <Label htmlFor="medication-taken-checkbox">Medication Taken ({item.medication?.name})</Label>
             </Field>
           </FieldGroup>
 
