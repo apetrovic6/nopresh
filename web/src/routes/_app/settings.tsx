@@ -9,16 +9,25 @@ import { useAppForm } from '#/hooks/demo.form';
 import { queryClient, transport } from '#/integrations/connect';
 import { createQueryOptions, useMutation, useQuery } from '@connectrpc/connect-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { toast } from 'sonner';
 import z from 'zod';
 import { dirtyFieldMaskPaths } from '#/lib/field-mask';
+import { useToast } from '#/hooks/use-toast';
+
+const timeZones = Intl.supportedValuesOf('timeZone').map(timezone => ({ label: timezone, value: timezone }));
+
+export interface SettingsFormProps {
+  medications: Medication[],
+  settings: Settings | undefined,
+  formId: string,
+}
 
 export const Route = createFileRoute('/_app/settings')({
   component: RouteComponent,
 })
 
 const schema = z.object({
-  defaultMedicationId: z.string().transform(val => Number(val)).pipe(z.number().int().nonnegative())
+  defaultMedicationId: z.string().transform(val => Number(val)).pipe(z.number().int().nonnegative()),
+  timezone: z.string(),
 });
 
 function RouteComponent() {
@@ -38,49 +47,37 @@ function RouteComponent() {
   )
 }
 
-export interface SettingsFormProps {
-  medications: Medication[],
-  settings: Settings | undefined,
-  formId: string,
-}
 
 function SettingsForm({ medications, settings, formId }: SettingsFormProps) {
+  const toast = useToast();
   const { mutateAsync: createSettingsAsync, isPending: createSettingsPending } = useMutation(createSettings)
   const { mutateAsync: updateSettingsAsync, isPending: updateSettingsPending } = useMutation(updateSettings)
 
   async function createSettingsEntry(value: typeof form.state.values) {
     await createSettingsAsync({
-      defaultMedicationId: Number(value.defaultMedicationId)
+      defaultMedicationId: Number(value.defaultMedicationId),
+      timezone: value.timezone
     }, {
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: createQueryOptions(getSettings, {}, { transport }).queryKey
         });
 
-        toast.success("Settings saved", {
-          description: "Your settings have been succesfully updated",
-          richColors: true,
-          dismissible: true,
-          closeButton: true,
-        })
+        toast.success("Settings saved", "Your settings have been succesfully updated");
       },
 
       onError: (error) => {
-        toast.error(`Error`, {
-          description: `Couldn't save settings \n${error.message}`,
-          richColors: true,
-          dismissible: true,
-          closeButton: true,
-        })
+        toast.error("Error", `Couldn't save settings \n${error.message}`);
       }
     });
   }
 
   async function updateSettingsEntry(value: typeof form.state.values) {
     const paths = dirtyFieldMaskPaths(SettingsSchema, form.state.fieldMeta);
-
+    
     await updateSettingsAsync({
       defaultMedicationId: Number(value.defaultMedicationId),
+      timezone: value.timezone,
       updateMask: {
         paths
       }
@@ -90,29 +87,20 @@ function SettingsForm({ medications, settings, formId }: SettingsFormProps) {
           queryKey: createQueryOptions(getSettings, {}, { transport }).queryKey
         });
 
-        toast.success("Settings saved", {
-          description: "Your settings have been succesfully updated",
-          richColors: true,
-          dismissible: true,
-          closeButton: true,
-        })
+        toast.success("Settings saved", "Your settings have been succesfully updated");
       },
 
       onError: (error) => {
-        toast.error(`Error`, {
-          description: `Couldn't save settings \n${error.message}`,
-          richColors: true,
-          dismissible: true,
-          closeButton: true,
-        })
-
+        toast.error("Error", `Couldn't save settings \n${error.message}`);
       }
     })
   }
 
+  console.log("settings ugala bugala", settings);
   const form = useAppForm({
     defaultValues: {
-      defaultMedicationId: settings?.defaultMedicationId?.toString() ?? ""
+      defaultMedicationId: settings?.defaultMedicationId?.toString() ?? "",
+      timezone: settings?.timezone ?? "",
     },
     validators: {
       onSubmit: schema,
@@ -133,14 +121,20 @@ function SettingsForm({ medications, settings, formId }: SettingsFormProps) {
   }
 
   return (
-    <>
-      <h1>Settings</h1>
+    <section className='m-2'>
+      <h1 className='scroll-m-20 text-left text-4xl font-extrabold tracking-tight text-balance'>Settings</h1>
       <div>
-        <form onSubmit={onSettingsSubmit} id={formId}>
-          <FieldGroup>
+        <form onSubmit={onSettingsSubmit} id={formId} >
+          <FieldGroup className='lg:max-w-xs my-2'>
             <form.AppField name="defaultMedicationId">
               {field => <field.MedicationPicker label="Default Medication"
                 values={medications}
+              />}
+            </form.AppField>
+
+            <form.AppField name="timezone">
+              {field => <field.Combobox<string> label='Timezone'
+                items={timeZones.map(x => x.value)}
               />}
             </form.AppField>
           </FieldGroup>
@@ -155,6 +149,6 @@ function SettingsForm({ medications, settings, formId }: SettingsFormProps) {
           </Button>
         </form>
       </div>
-    </>
+    </section>
   )
 }

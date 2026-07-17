@@ -7,6 +7,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { Link, linkOptions, useMatchRoute, useNavigate } from "@tanstack/react-router"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
@@ -19,7 +20,12 @@ import { authStore } from "#/store/auth-store";
 const options = linkOptions([
   {
     to: "/",
-    label: "Home",
+    label: "Overview",
+  },
+
+  {
+    to: "/blood-pressure",
+    label: "Blood Presure",
   },
   {
     to: "/medication",
@@ -33,21 +39,33 @@ const options = linkOptions([
 
 
 export function AppSidebar() {
+  const sidebar = useSidebar();
   const matchRoute = useMatchRoute();
   const navigate = useNavigate()
   const { refetch: logoutQuery } = useQuery(logout, {}, { enabled: false });
   const { data: user } = useSuspenseQuery(me, {});
 
-  async function onLogout(_: React.MouseEvent) {
+  async function onLogout(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+
     await logoutQuery();
     authStore.actions.logoutUser();
     navigate({ to: "/auth/login" });
   }
 
+  function collapseSidebarAfterNavigating() {
+    if (sidebar.isMobile) {
+      // sidebar.setOpen(false) doesn't work for some reason
+      sidebar.toggleSidebar();
+    }
+  }
+
+
   return (
     <Sidebar>
       <SidebarHeader >
-        <h1>
+        <h1 className="text-left text-4xl font-extrabold text-balance tracking-wide">
           NoPresh
         </h1>
       </SidebarHeader>
@@ -56,7 +74,7 @@ export function AppSidebar() {
           {options.map(opt => {
             const isActive = matchRoute({ to: opt.to });
             return <SidebarMenuButton key={opt.to} asChild isActive={!!isActive}>
-              <Link {...opt} activeProps={{ className: `font-bold` }} className="p-2">
+              <Link {...opt} onClick={collapseSidebarAfterNavigating} activeProps={{ className: `font-bold` }} className="p-2">
                 {opt.label}
               </Link>
             </SidebarMenuButton>
@@ -79,7 +97,9 @@ export function AppSidebar() {
                     <DropdownMenuItem asChild>
                       <Link to="/settings"> Settings</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
+                    <DropdownMenuItem  >
+                      <Link className="w-full" onClick={onLogout} to="/auth/login"> Logout</Link>
+                    </DropdownMenuItem>
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>

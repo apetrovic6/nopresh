@@ -12,30 +12,40 @@ import {
   FieldDescription,
   FieldGroup,
 } from "#/components/ui/field.tsx"
-import { login } from "#/gen/proto/auth/v1/auth-AuthService_connectquery"
-import { useMutation } from "@connectrpc/connect-query"
+import { login, me } from "#/gen/proto/auth/v1/auth-AuthService_connectquery"
+import { useMutation, useQuery } from "@connectrpc/connect-query"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { useAppForm } from "#/hooks/demo.form"
 import Error from "./Error"
+import { authStore, type AuthenticatedUser } from "#/store/auth-store"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const { refetch: fetchMe } = useQuery(me, {}, { enabled: false })
   const { error, isError, mutateAsync } = useMutation(login);
   const navigate = useNavigate();
 
   const form = useAppForm({
     defaultValues: {
-      email: "",
-      password: "",
+      email: "ugala@bugala.com",
+      password: "12345",
     },
     onSubmit: async ({ value }) => {
       const { email, password } = value;
       await mutateAsync({ email, password }, {
         onError: (r) => console.log("error", r),
-        onSuccess: (_) => {
-          navigate({ to: "/" })
+        onSuccess: async (_) => {
+          const res = await fetchMe();
+
+          if (res.isSuccess && res.data) {
+            const { data } = res;
+            const user: AuthenticatedUser = { email: data.email, name: data.name, isAuthenticated: true };
+
+            authStore.actions.addUser(user);
+            navigate({ to: "/" })
+          }
         }
       });
     }
@@ -66,9 +76,9 @@ export function LoginForm({
               </form.AppField>
 
               <Field>
-                  <form.AppField name="password">
-                    {field => <field.TextField type="password" label="Password" />}
-                  </form.AppField>
+                <form.AppField name="password">
+                  {field => <field.TextField type="password" label="Password" />}
+                </form.AppField>
               </Field>
               <Field>
                 <Button type="submit">Login</Button>
