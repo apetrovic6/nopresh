@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package proto.bloodpressure.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/empty.proto";
+import "proto/medication/v1/medication_entry.proto";
+
+enum SORTORDER {
+  SORTORDER_UNSPECIFIED = 0;
+  SORTORDER_ASC = 1;
+  SORTORDER_DESC = 2;
+}
+
+message DateFilter {
+  google.protobuf.Timestamp start_date = 1;
+  google.protobuf.Timestamp end_date = 2;
+  }
+
+message PageInfo {
+  string cursor = 1;
+  uint32 page_size = 2;
+  SORTORDER sort_order = 3;
+}
+
+message CreateBloodPressureRequest {
+uint32 systolic = 1 [
+    (buf.validate.field).uint32 = {},
+    (buf.validate.field).required = true
+  ];
+
+  uint32 diastolic = 2 [
+    (buf.validate.field).uint32 = {},
+    (buf.validate.field).required = true
+  ];
+
+  uint32 pulse = 3 [
+    (buf.validate.field).uint32 = {},
+    (buf.validate.field).required = true
+  ];
+
+  google.protobuf.Timestamp date_time_utc = 4 [
+    (buf.validate.field).timestamp = {},
+    (buf.validate.field).required = true
+  ];
+
+  uint32 medication_id = 5 [
+  (buf.validate.field).required = true
+  ];
+
+  float dosage = 6 [
+  (buf.validate.field).required = true
+  ];
+
+  bool medication_taken = 7 ;
+}
+
+message DeleteBloodPressureRequest {
+  uint32 id = 1 [(buf.validate.field).uint32 = {},
+  (buf.validate.field).required = true
+  ];
+}
+
+message BloodPressureEntry {
+  uint32 id = 1;
+  uint32 systolic = 2;
+  uint32 diastolic = 3;
+  uint32 pulse = 4;
+  google.protobuf.Timestamp date_time_utc  = 5;
+  uint32 user_id = 6;
+  uint32 medication_id = 7;
+  float dosage = 8;
+  bool medication_taken = 9 ;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  proto.medication.v1.Medication medication = 12;
+}
+
+message CreateBloodPressureResponse {
+  BloodPressureEntry entry = 1;
+}
+
+message GetBloodPressureRequest {
+  PageInfo page_info = 1;
+  DateFilter date_filter = 2;
+}
+
+message GetBloodPressureResponse{
+ repeated BloodPressureEntry blood_pressure = 1;
+  PageInfo page_info = 2;
+}
+
+message UpdateBloodPressureRequest {
+  uint32 id = 1;
+  uint32 systolic = 2;
+  uint32 diastolic = 3;
+  uint32 pulse = 4;
+  google.protobuf.Timestamp date_time_utc  = 5;
+  uint32 medication_id = 6;
+  float dosage = 7;
+  bool medication_taken = 8;
+ google.protobuf.FieldMask update_mask = 9;
+}
+
+service BloodPressureService {
+  rpc CreateBloodPressure(CreateBloodPressureRequest) returns (CreateBloodPressureResponse) {}
+  rpc GetBloodPressure(GetBloodPressureRequest) returns (GetBloodPressureResponse) {}
+
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  rpc UpdateBloodPressure(UpdateBloodPressureRequest) returns (google.protobuf.Empty) {}
+
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  rpc DeleteBloodPressure(DeleteBloodPressureRequest) returns(google.protobuf.Empty) {}
+}
