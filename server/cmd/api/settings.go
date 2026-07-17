@@ -35,6 +35,7 @@ func (s *SettingsServer) CreateSettings(
 		0,
 		userCtx.JwtClaims.ID,
 		uint(req.Msg.DefaultMedicationId),
+		req.Msg.Timezone,
 	)
 
 	settingsEntry, err := s.models.Settings.Insert(ctx, settingsEntry)
@@ -103,6 +104,8 @@ func (s *SettingsServer) UpdateSettings(
 		switch path {
 		case "default_medication_id":
 			input.DefaultMedicationId = new(uint(req.Msg.DefaultMedicationId))
+		case "timezone":
+			input.TimeZone = new(req.Msg.Timezone)
 		}
 	}
 
@@ -120,5 +123,6 @@ func (s *SettingsServer) UpdateSettings(
 func settingsFromDomainObject(s *settings.Settings) *settingsv1.Settings {
 	return &settingsv1.Settings{
 		DefaultMedicationId: uint32(s.DefaultMedicationId),
+		Timezone:            s.TimeZone,
 	}
 }

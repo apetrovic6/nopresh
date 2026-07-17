@@ -5,13 +5,14 @@ package proto.settings.v1;
 import "buf/validate/validate.proto";
 import "google/protobuf/field_mask.proto";
 
-
 message Settings {
   uint32 default_medication_id = 1;
+  string timezone = 2;
 }
 
 message CreateSettingsRequest {
   uint32 default_medication_id = 1;
+  string timezone = 2;
 }
 
 message CreateSettingsResponse {
@@ -26,6 +27,7 @@ message GetSettingsResponse {
 
 message UpdateSettingsRequest {
   uint32 default_medication_id = 1;
+  string timezone = 2;
 
   google.protobuf.FieldMask update_mask = 5;
 }

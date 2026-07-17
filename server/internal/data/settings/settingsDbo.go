@@ -17,6 +17,7 @@ type SettingsModel struct {
 
 type SettingsDbo struct {
 	gorm.Model
+	TimeZone            string
 	UserId              uint `gorm:"uniqueIndex"`
 	DefaultMedicationId uint
 }
@@ -46,6 +47,10 @@ func (s *SettingsModel) Update(ctx context.Context, userId uint, updateDto setti
 
 	if updateDto.DefaultMedicationId != nil {
 		updates["default_medication_id"] = *updateDto.DefaultMedicationId
+	}
+
+	if updateDto.TimeZone != nil {
+		updates["time_zone"] = *updateDto.TimeZone
 	}
 
 	rowsAffected, err := gorm.G[SettingsDbo](s.DB).
@@ -82,6 +87,7 @@ func toDbo(settings *settings.Settings) *SettingsDbo {
 	return &SettingsDbo{
 		UserId:              settings.UserId,
 		DefaultMedicationId: settings.DefaultMedicationId,
+		TimeZone:            settings.TimeZone,
 	}
 }
 
@@ -90,5 +96,6 @@ func toDomain(s *SettingsDbo) *settings.Settings {
 		ID:                  s.ID,
 		UserId:              s.UserId,
 		DefaultMedicationId: s.DefaultMedicationId,
+		TimeZone:            s.TimeZone,
 	}
 }
