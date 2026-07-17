@@ -153,9 +153,13 @@ func (bps *BloodPressureServer) UpdateBloodPressure(
 			input.Diastolic = new(uint16(req.Msg.Diastolic))
 		case "pulse":
 			input.Pulse = new(uint16(req.Msg.Pulse))
+		case "dosage":
+			input.Dosage = new(req.Msg.Dosage)
 		case "date_time_utc":
 			input.DateTimeUtc = new(req.Msg.DateTimeUtc.AsTime())
 		case "medication_id":
+			input.MedicationId = new(uint(req.Msg.MedicationId))
+		case "medication":
 			input.MedicationId = new(uint(req.Msg.MedicationId))
 		case "medication_taken":
 			input.MedicationTaken = new(req.Msg.MedicationTaken)
