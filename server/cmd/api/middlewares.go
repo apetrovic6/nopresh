@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"connectrpc.com/authn"
 	connectcors "connectrpc.com/cors"
@@ -13,20 +14,24 @@ import (
 )
 
 type Middlewares struct {
-	jwt    *auth.JWT
-	logger *slog.Logger
+	jwt     *auth.JWT
+	logger  *slog.Logger
+	domains []string
 }
 
-func NewMiddleware(jwt *auth.JWT, logger *slog.Logger) Middlewares {
+func NewMiddleware(jwt *auth.JWT, logger *slog.Logger, domains string) Middlewares {
+	parsedDomains := strings.Split(domains, ",")
+
 	return Middlewares{
-		jwt:    jwt,
-		logger: logger,
+		jwt:     jwt,
+		logger:  logger,
+		domains: parsedDomains,
 	}
 }
 
 func (m *Middlewares) WithCors(h http.Handler) http.Handler {
 	middleware := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedOrigins:   m.domains,
 		AllowedMethods:   connectcors.AllowedMethods(),
 		AllowedHeaders:   connectcors.AllowedHeaders(),
 		ExposedHeaders:   connectcors.ExposedHeaders(),
