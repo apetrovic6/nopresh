@@ -1,12 +1,10 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -19,21 +17,6 @@ import (
 	"nopresh.apetrovic.com/internal/utils/auth"
 )
 
-type config struct {
-	port        int
-	env         string
-	db          db
-	jwtSecret   string
-	jwtDuration time.Duration
-}
-
-type db struct {
-	dsn          string
-	maxOpenConns int
-	maxIdleConns int
-	maxIdleTime  time.Duration
-}
-
 type app struct {
 	mux         *http.ServeMux
 	config      config
@@ -45,17 +28,11 @@ type app struct {
 
 func main() {
 	var cfg config
-
-	flag.StringVar(&cfg.env, "env", "development", "Evironment (development|staging|production)")
-	flag.IntVar(&cfg.port, "port", 5000, "5000")
-	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("NOPRESH_DB_DSN"), "Postgres DSN")
-	flag.StringVar(&cfg.jwtSecret, "JWT Secret Key", "supersecretkey", "Postgres DSN")
-	flag.DurationVar(&cfg.jwtDuration, "JWT Token Duration", 15*time.Minute, "Postgres DSN")
-	flag.Parse()
+	cfg.loadFlags()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	db, err := gorm.Open(postgres.Open(cfg.db.dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(cfg.db.getDsn(cfg.tz)), &gorm.Config{})
 
 	if err != nil {
 		logger.Error(err.Error())
@@ -74,7 +51,7 @@ func main() {
 		mux:         http.NewServeMux(),
 		logger:      logger,
 		config:      cfg,
-		middlewares: NewMiddleware(jwt, logger),
+		middlewares: NewMiddleware(jwt, logger, cfg.domains),
 		models:      data.NewModels(db),
 		jwt:         jwt,
 	}
@@ -90,7 +67,7 @@ func main() {
 	p.SetUnencryptedHTTP2(true)
 
 	srv := http.Server{
-		Addr:      "127.0.0.1:5000",
+		Addr:      cfg.getHost(),
 		Handler:   app.mux,
 		Protocols: p,
 	}
