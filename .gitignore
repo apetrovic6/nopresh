@@ -9,3 +9,11 @@ devenv.local.yaml
 # pre-commit
 .pre-commit-config.yaml
 ./server/proto-vendor
+
+**bin
+**dist
+
+**.idea
+
+server/cmd/api/dist/*
+!server/cmd/api/dist/.gitkeep

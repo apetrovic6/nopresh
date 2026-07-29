@@ -8,9 +8,12 @@
   # Build the backend as a standalone, static Nix package (no CGO -> runs in a
   # minimal image). The binary is named after its subpackage dir: cmd/api -> "api".
   backend = (pkgs.buildGoModule.override {go = config.languages.go.package;}) {
-    pname = "nopresh-server";
+    pname = "nopresh";
     version = "0.1.0";
-    src = ./server;
+    src = lib.cleanSourceWith {
+      src = ./server;
+      filter = path: _type: !lib.hasInfix "cmd/api/dist/" (toString path + "/");
+    };
     vendorHash = "sha256-Rmdw2k5oseSfa4SUp+Lsyc2Vv9rC20dSa2VvzuPlHiw=";
     subPackages = ["cmd/api"];
     env.CGO_ENABLED = "0";
@@ -18,6 +21,10 @@
     # in a minimal image that has no /usr/share/zoneinfo.
     tags = ["timetzdata"];
     doCheck = false;
+    preBuild = ''
+      mkdir -p cmd/api/dist
+      cp -r ${frontend}/. cmd/api/dist/
+    '';
   };
 
   # Build the frontend (TanStack Start SSR) reproducibly with pnpm. `pnpm build`
@@ -42,12 +49,11 @@
       inherit (finalAttrs) pname version src;
       # pnpm 11 requires the newer fetcher (v3 is unsupported; 4 is latest).
       fetcherVersion = 4;
-      hash = "sha256-4oPRhGImrLFy+htZjv9RTpcfZyLE6ZhY2RjVifT7VdA=";
+      hash = "sha256-HexFVoiEp+e1HyEZXRZVqOePqxwlatK7ODYPWLOgTvQ=";
     };
     # CI=true so pnpm runs non-interactively (no TTY in the sandbox).
     # VITE_-prefixed vars are inlined into the browser bundle at build time.
     env.CI = "true";
-    env.VITE_BASE_URL = "http://localhost:5000/api";
     buildPhase = ''
       runHook preBuild
       pnpm build
@@ -55,11 +61,11 @@
     '';
     installPhase = ''
       runHook preInstall
-      cp -r .output $out
+      # SPA build output static files under dist/client
+      cp -r dist/client $out
       runHook postInstall
     '';
   });
-
 in {
   # https://devenv.sh/basics/
 
@@ -137,13 +143,7 @@ in {
   scripts.load-server.exec = ''
     devenv container copy --registry \
       "containers-storage:[overlay@$HOME/.local/share/containers/storage+''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/containers]" \
-      server
-  '';
-
-  scripts.load-client.exec = ''
-    devenv container copy --registry \
-      "containers-storage:[overlay@$HOME/.local/share/containers/storage+''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/containers]" \
-      client
+      nopresh
   '';
 
   # https://devenv.sh/basics/
@@ -197,66 +197,33 @@ in {
     ports.http.allocate = 3000;
   };
 
-  # processes.build-backend = {
-  #   exec = ''
-  #     go build
-  #   '';
-  # };
-
-  # Temporary: expose the frontend build so we can compute its pnpmDeps hash
-  # (`devenv build outputs.frontend`). Will wire into a container next.
-  outputs.frontend = frontend;
-
-  containers = {
-    server = {
-      name = "nopresh-server";
-      enableLayerDeduplication = true;
-      # Exec the static binary directly. The default entrypoint sources the whole
-      # dev shell (`shell.envScript`), which drags the entire toolchain closure
-      # (~7GB) into the image; bypassing it keeps only the binary + base utils.
-      entrypoint = ["${backend}/bin/api"];
-      startupCommand = [];
-      # Only ship the backend package, not the whole repo (the default).
-      copyToRoot = [backend];
-    };
-
-    client = {
-      name = "nopresh-client";
-      enableLayerDeduplication = true;
-      # Run the nitro bun-preset SSR server. Bypass devenv's shell-sourcing
-      # entrypoint (same ~7GB bloat reason as the server container).
-      entrypoint = ["${lib.getExe pkgs.bun}" "${frontend}/server/index.mjs"];
-      startupCommand = [];
-      # bun is already pulled in via the entrypoint's store path; only copy the
-      # built app into the image root (also keeps /env, the workdir, populated).
-      # Adding bun here would duplicate its ~133MB closure into the home layer.
-      copyToRoot = [frontend];
-    };
+  containers.nopresh = {
+    name = "nopresh";
+    enableLayerDeduplication = true;
+    # Exec the static binary directly. The default entrypoint sources the whole
+    # dev shell (`shell.envScript`), which drags the entire toolchain closure
+    # (~7GB) into the image; bypassing it keeps only the binary + base utils.
+    entrypoint = ["${backend}/bin/api"];
+    startupCommand = [];
+    # Only ship the backend package, not the whole repo (the default).
+    copyToRoot = [backend];
   };
-
-  # env = lib.mkMerge [
-
-  # ];
 
   env = lib.mkMerge [
     (let
       apiHost = "0.0.0.0";
       apiPort = toString config.processes.backend.ports.http.value;
-      clientPort = toString config.processes.client.ports.http.value;
     in {
       # Safe to bake into the image (no secrets, no big store paths).
       # Empty host => listen on all interfaces (dual-stack IPv4 + IPv6) so that
       # a client using "localhost" reaches the server whether localhost resolves
       # to 127.0.0.1 or ::1.
-      API_HOST = apiHost;
-      API_PORT = apiPort;
-      DOMAINS = "http://localhost:${clientPort}";
+      HOST = apiHost;
+      PORT = apiPort;
       JWT_DURATION = "15m";
       # Not `TZ`: that's a reserved libc var and gets clobbered by the shell;
       # use an app-specific name the server reads explicitly.
       APP_TZ = "Europe/Zagreb";
-      VITE_BASE_URL = "http://localhost:${apiPort}/api";
-      VITE_PORT = lib.toInt clientPort;
       ENVIRONMENT =
         if config.container.isBuilding
         then "production"

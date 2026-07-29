@@ -43,7 +43,7 @@ func (app *app) routes() http.Handler {
 	middleware := authn.NewMiddleware(app.middlewares.Authenticate)
 	wrapped := middleware.Wrap(router)
 
-	return app.middlewares.WithCors(app.middlewares.WithTokenRefresh(wrapped))
+	return app.middlewares.WithTokenRefresh(wrapped)
 }
 
 func (app *app) registerRoutes() {

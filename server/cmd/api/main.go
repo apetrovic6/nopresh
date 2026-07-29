@@ -59,6 +59,7 @@ func main() {
 
 	app.registerReflection()
 	app.registerRoutes()
+	app.registerWeb()
 
 	p := new(http.Protocols)
 

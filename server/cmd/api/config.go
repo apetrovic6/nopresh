@@ -11,7 +11,6 @@ import (
 type config struct {
 	host        string
 	port        int
-	domains     string
 	env         string
 	db          db
 	tz          string
@@ -39,10 +38,10 @@ func (db *db) getDsn(timezone string) string {
 }
 
 func (cfg *config) loadFlags() {
-	port, err := strconv.Atoi(os.Getenv("API_PORT"))
+	port, err := strconv.Atoi(os.Getenv("PORT"))
 
 	if err != nil {
-		msg := fmt.Sprintf("API_PORT not valid %v", err)
+		msg := fmt.Sprintf("PORT not valid %v", err)
 		panic(msg)
 	}
 
@@ -65,9 +64,9 @@ func (cfg *config) loadFlags() {
 		panic(msg)
 	}
 
-	flag.StringVar(&cfg.host, "host", os.Getenv("API_HOST"), "127.0.0.1")
+	flag.StringVar(&cfg.host, "host", os.Getenv("HOST"), "127.0.0.1")
 	flag.StringVar(&cfg.tz, "timezone", os.Getenv("APP_TZ"), "Timezone for the app and db connection string")
-	flag.StringVar(&cfg.domains, "domain", os.Getenv("DOMAINS"), "Domains from which the frontend(s) will be hosted on. Domains should be separated by a comma (https://domain1.com,https://domain2.com)")
+	// flag.StringVar(&cfg.domains, "domain", os.Getenv("DOMAINS"), "Domains from which the frontend(s) will be hosted on. Domains should be separated by a comma (https://domain1.com,https://domain2.com)")
 	flag.StringVar(&cfg.env, "env", os.Getenv("ENVIRONMENT"), "Evironment (development|staging|production)")
 	flag.IntVar(&cfg.port, "port", port, "5000")
 
