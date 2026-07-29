@@ -1,0 +1,41 @@
+name: build-and-push
+on:
+  push:
+    branches: [master]
+
+jobs:
+  image:
+    runs-on: nix
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build server proto
+        run: |
+         cd ./server
+         buf lint
+         buf generate
+
+      - name: Build client proto
+        run: |
+         cd ./server
+         bun generate
+          
+      - name: Build & push image to Forgejo registry
+        env:
+          # Forgejo Actions secret: a token with `write:package` scope.
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # nix2container's bundled skopeo reads REGISTRY_AUTH_FILE for creds.
+          auth="$(mktemp)"
+          trap 'rm -f "$auth"' EXIT
+          printf '{"auths":{"forge.ugalabugala.org":{"auth":"%s"}}}' \
+            "$(printf 'manjo:%s' "$REGISTRY_TOKEN" | base64 -w0)" > "$auth"
+          export REGISTRY_AUTH_FILE="$auth"
+
+          # Build the nix2container image and push :latest to the registry.
+          devenv container copy \
+            --registry docker://forge.ugalabugala.org/manjo/ \
+            nopresh
