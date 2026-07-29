@@ -19,6 +19,47 @@
     tags = ["timetzdata"];
     doCheck = false;
   };
+
+  # Build the frontend (TanStack Start SSR) reproducibly with pnpm. `pnpm build`
+  # emits a self-contained `.output` (nitro `bun` preset) that we run with bun.
+  frontend = pkgs.stdenv.mkDerivation (finalAttrs: {
+    pname = "nopresh-web";
+    version = "0.1.0";
+    # Exclude local node_modules / build outputs so they aren't copied into the
+    # store (bloat + pnpm's non-interactive purge error).
+    src = lib.cleanSourceWith {
+      src = ./web;
+      filter = path: _type: let
+        b = baseNameOf path;
+      in
+        b != "node_modules" && b != ".output" && b != "dist";
+    };
+    nativeBuildInputs = [
+      pkgs.nodejs
+      pkgs.pnpm.configHook
+    ];
+    pnpmDeps = pkgs.pnpm.fetchDeps {
+      inherit (finalAttrs) pname version src;
+      # pnpm 11 requires the newer fetcher (v3 is unsupported; 4 is latest).
+      fetcherVersion = 4;
+      hash = "sha256-4oPRhGImrLFy+htZjv9RTpcfZyLE6ZhY2RjVifT7VdA=";
+    };
+    # CI=true so pnpm runs non-interactively (no TTY in the sandbox).
+    # VITE_-prefixed vars are inlined into the browser bundle at build time.
+    env.CI = "true";
+    env.VITE_BASE_URL = "http://localhost:5000/api";
+    buildPhase = ''
+      runHook preBuild
+      pnpm build
+      runHook postBuild
+    '';
+    installPhase = ''
+      runHook preInstall
+      cp -r .output $out
+      runHook postInstall
+    '';
+  });
+
 in {
   # https://devenv.sh/basics/
 
@@ -26,6 +67,8 @@ in {
   packages = with pkgs; [
     git
     nixd
+
+    podman-compose
 
     # Protobuf stuff
     protols
@@ -90,17 +133,17 @@ in {
       -- devenv tasks run nopresh:rebuildServerProto nopresh:rebuildClientProto
   '';
 
-  # https://devenv.sh/scripts/
-  scripts.hello.exec = ''
-    echo hello from $GREET
-  '';
-
-  # Build + import the server image straight into rootless podman storage in one
-  # step (skips the docker-archive tarball + `podman load`). Run: `load-server`.
+  # import the server image straight into rootless podman storage in one
   scripts.load-server.exec = ''
     devenv container copy --registry \
       "containers-storage:[overlay@$HOME/.local/share/containers/storage+''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/containers]" \
       server
+  '';
+
+  scripts.load-client.exec = ''
+    devenv container copy --registry \
+      "containers-storage:[overlay@$HOME/.local/share/containers/storage+''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/containers]" \
+      client
   '';
 
   # https://devenv.sh/basics/
@@ -160,6 +203,10 @@ in {
   #   '';
   # };
 
+  # Temporary: expose the frontend build so we can compute its pnpmDeps hash
+  # (`devenv build outputs.frontend`). Will wire into a container next.
+  outputs.frontend = frontend;
+
   containers = {
     server = {
       name = "nopresh-server";
@@ -172,50 +219,73 @@ in {
       # Only ship the backend package, not the whole repo (the default).
       copyToRoot = [backend];
     };
+
+    client = {
+      name = "nopresh-client";
+      enableLayerDeduplication = true;
+      # Run the nitro bun-preset SSR server. Bypass devenv's shell-sourcing
+      # entrypoint (same ~7GB bloat reason as the server container).
+      entrypoint = ["${lib.getExe pkgs.bun}" "${frontend}/server/index.mjs"];
+      startupCommand = [];
+      # bun is already pulled in via the entrypoint's store path; only copy the
+      # built app into the image root (also keeps /env, the workdir, populated).
+      # Adding bun here would duplicate its ~133MB closure into the home layer.
+      copyToRoot = [frontend];
+    };
   };
 
   # env = lib.mkMerge [
-  
+
   # ];
 
   env = lib.mkMerge [
     (let
+      apiHost = "0.0.0.0";
       apiPort = toString config.processes.backend.ports.http.value;
       clientPort = toString config.processes.client.ports.http.value;
-      database = builtins.head config.services.postgres.initialDatabases;
-      databasePort = toString config.services.postgres.port;
     in {
+      # Safe to bake into the image (no secrets, no big store paths).
       # Empty host => listen on all interfaces (dual-stack IPv4 + IPv6) so that
       # a client using "localhost" reaches the server whether localhost resolves
       # to 127.0.0.1 or ::1.
-      API_HOST = "0.0.0.0";
+      API_HOST = apiHost;
       API_PORT = apiPort;
       DOMAINS = "http://localhost:${clientPort}";
-      ENVIRONMENT = "development";
-      JWT_SECRET_KEY = "supersecretkey";
       JWT_DURATION = "15m";
-      DB_HOST = "localhost";
-      DB_PORT = databasePort;
-      DB_USER = database.user;
-      DB_PASSWORD = database.pass;
-      DB_NAME = database.name;
       # Not `TZ`: that's a reserved libc var and gets clobbered by the shell;
       # use an app-specific name the server reads explicitly.
       APP_TZ = "Europe/Zagreb";
       VITE_BASE_URL = "http://localhost:${apiPort}/api";
       VITE_PORT = lib.toInt clientPort;
+      ENVIRONMENT =
+        if config.container.isBuilding
+        then "production"
+        else "development";
     })
-    # devenv bakes the whole `env` into container images. During a container
-    # build (`container.isBuilding`), blank vars we don't want in the image:
-    #  - big store paths (dev profile + Go toolchain) -> keeps the image small
-    #  - dev-only secrets/config -> must be supplied at runtime (`podman/docker/whatever run -e`)
-    # The dev shell is unaffected; the runtime binary needs none of these baked.
+
+    # Dev-only secrets + local service wiring. Defined ONLY when NOT building a
+    # container, so they can never be baked into the image (devenv bakes the whole
+    # `env`). Supply them at runtime instead (`podman/docker run -e ...`). This is
+    # fail-safe: a new secret added here is excluded from images by default.
+    (lib.mkIf (!config.container.isBuilding) (let
+      database = builtins.head config.services.postgres.initialDatabases;
+      databasePort = toString config.services.postgres.port;
+    in {
+      JWT_SECRET_KEY = "supersecretkey";
+      DB_HOST = "localhost";
+      DB_PORT = databasePort;
+      DB_USER = database.user;
+      DB_PASSWORD = database.pass;
+      DB_NAME = database.name;
+    }))
+
+    # These are set by other modules (dev profile, task runner, Go toolchain) and
+    # point at huge store paths, so they can't just be "left undefined" — blank
+    # them during container builds to keep the image small.
     (lib.mkIf config.container.isBuilding {
       DEVENV_PROFILE = lib.mkForce "";
       DEVENV_TASK_FILE = lib.mkForce "";
       GOROOT = lib.mkForce "";
-      JWT_SECRET_KEY = lib.mkForce "";
-      NOPRESH_DB_DSN = lib.mkForce "";
     })
   ];
 
