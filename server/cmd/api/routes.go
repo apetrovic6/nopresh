@@ -16,7 +16,12 @@ import (
 func (app *app) routes() http.Handler {
 	router := http.NewServeMux()
 
-	router.Handle(authv1connect.NewAuthServiceHandler(&AuthServer{models: app.models, logger: app.logger, jwt: app.jwt},
+	router.Handle(authv1connect.NewAuthServiceHandler(&AuthServer{
+		models: app.models,
+		logger: app.logger,
+		jwt:    app.jwt,
+		config: app.config,
+	},
 		connect.WithInterceptors(validate.NewInterceptor()),
 	))
 

@@ -9,34 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
-import { Route as DemoIndexRouteImport } from './routes/demo/index'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
-import { Route as DemoTableRouteImport } from './routes/demo/table'
-import { Route as DemoStoreRouteImport } from './routes/demo/store'
-import { Route as AuthRegisterRouteImport } from './routes/auth/register'
-import { Route as AuthLoginRouteImport } from './routes/auth/login'
-import { Route as AuthRouteRouteImport } from './routes/auth/_route'
-import { Route as AppSettingsRouteImport } from './routes/_app/settings'
-import { Route as AppMedicationRouteImport } from './routes/_app/medication'
 import { Route as AppBloodPressureRouteImport } from './routes/_app/blood-pressure'
-import { Route as DemoFormSimpleRouteImport } from './routes/demo/form.simple'
+import { Route as AppMedicationRouteImport } from './routes/_app/medication'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AuthRouteRouteImport } from './routes/auth/_route'
+import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AuthRegisterRouteImport } from './routes/auth/register'
+import { Route as DemoIndexRouteImport } from './routes/demo/index'
+import { Route as DemoStoreRouteImport } from './routes/demo/store'
+import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoFormAddressRouteImport } from './routes/demo/form.address'
+import { Route as DemoFormSimpleRouteImport } from './routes/demo/form.simple'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoIndexRoute = DemoIndexRouteImport.update({
-  id: '/demo/',
-  path: '/demo/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -44,38 +38,9 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoTableRoute = DemoTableRouteImport.update({
-  id: '/demo/table',
-  path: '/demo/table',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoStoreRoute = DemoStoreRouteImport.update({
-  id: '/demo/store',
-  path: '/demo/store',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRegisterRoute = AuthRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthRouteRoute = AuthRouteRouteImport.update({
-  id: '/_route',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const AppBloodPressureRoute = AppBloodPressureRouteImport.update({
+  id: '/blood-pressure',
+  path: '/blood-pressure',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMedicationRoute = AppMedicationRouteImport.update({
@@ -83,19 +48,48 @@ const AppMedicationRoute = AppMedicationRouteImport.update({
   path: '/medication',
   getParentRoute: () => AppRoute,
 } as any)
-const AppBloodPressureRoute = AppBloodPressureRouteImport.update({
-  id: '/blood-pressure',
-  path: '/blood-pressure',
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
-const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
-  id: '/demo/form/simple',
-  path: '/demo/form/simple',
+const AuthRouteRoute = AuthRouteRouteImport.update({
+  id: '/_route',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthRoute,
+} as any)
+const DemoIndexRoute = DemoIndexRouteImport.update({
+  id: '/demo/',
+  path: '/demo/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoStoreRoute = DemoStoreRouteImport.update({
+  id: '/demo/store',
+  path: '/demo/store',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
+  id: '/demo/tanstack-query',
+  path: '/demo/tanstack-query',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
   id: '/demo/form/address',
   path: '/demo/form/address',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
+  id: '/demo/form/simple',
+  path: '/demo/form/simple',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -108,7 +102,6 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/demo/store': typeof DemoStoreRoute
-  '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/demo/': typeof DemoIndexRoute
   '/demo/form/address': typeof DemoFormAddressRoute
@@ -122,7 +115,6 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/demo/store': typeof DemoStoreRoute
-  '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof AppIndexRoute
   '/demo': typeof DemoIndexRoute
@@ -140,7 +132,6 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/demo/store': typeof DemoStoreRoute
-  '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/_app/': typeof AppIndexRoute
   '/demo/': typeof DemoIndexRoute
@@ -158,7 +149,6 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/demo/store'
-    | '/demo/table'
     | '/demo/tanstack-query'
     | '/demo/'
     | '/demo/form/address'
@@ -172,7 +162,6 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/demo/store'
-    | '/demo/table'
     | '/demo/tanstack-query'
     | '/'
     | '/demo'
@@ -189,7 +178,6 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/demo/store'
-    | '/demo/table'
     | '/demo/tanstack-query'
     | '/_app/'
     | '/demo/'
@@ -201,7 +189,6 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   DemoStoreRoute: typeof DemoStoreRoute
-  DemoTableRoute: typeof DemoTableRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   DemoIndexRoute: typeof DemoIndexRoute
   DemoFormAddressRoute: typeof DemoFormAddressRoute
@@ -210,13 +197,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -224,11 +204,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/': {
-      id: '/demo/'
-      path: '/demo'
-      fullPath: '/demo/'
-      preLoaderRoute: typeof DemoIndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/': {
@@ -238,53 +218,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/demo/tanstack-query': {
-      id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
-      fullPath: '/demo/tanstack-query'
-      preLoaderRoute: typeof DemoTanstackQueryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/table': {
-      id: '/demo/table'
-      path: '/demo/table'
-      fullPath: '/demo/table'
-      preLoaderRoute: typeof DemoTableRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/store': {
-      id: '/demo/store'
-      path: '/demo/store'
-      fullPath: '/demo/store'
-      preLoaderRoute: typeof DemoStoreRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/register': {
-      id: '/auth/register'
-      path: '/register'
-      fullPath: '/auth/register'
-      preLoaderRoute: typeof AuthRegisterRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/auth/_route': {
-      id: '/auth/_route'
-      path: ''
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_app/settings': {
-      id: '/_app/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
+    '/_app/blood-pressure': {
+      id: '/_app/blood-pressure'
+      path: '/blood-pressure'
+      fullPath: '/blood-pressure'
+      preLoaderRoute: typeof AppBloodPressureRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/medication': {
@@ -294,18 +232,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMedicationRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/blood-pressure': {
-      id: '/_app/blood-pressure'
-      path: '/blood-pressure'
-      fullPath: '/blood-pressure'
-      preLoaderRoute: typeof AppBloodPressureRouteImport
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/demo/form/simple': {
-      id: '/demo/form/simple'
-      path: '/demo/form/simple'
-      fullPath: '/demo/form/simple'
-      preLoaderRoute: typeof DemoFormSimpleRouteImport
+    '/auth/_route': {
+      id: '/auth/_route'
+      path: ''
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/register': {
+      id: '/auth/register'
+      path: '/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/demo/': {
+      id: '/demo/'
+      path: '/demo'
+      fullPath: '/demo/'
+      preLoaderRoute: typeof DemoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/store': {
+      id: '/demo/store'
+      path: '/demo/store'
+      fullPath: '/demo/store'
+      preLoaderRoute: typeof DemoStoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/tanstack-query': {
+      id: '/demo/tanstack-query'
+      path: '/demo/tanstack-query'
+      fullPath: '/demo/tanstack-query'
+      preLoaderRoute: typeof DemoTanstackQueryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/form/address': {
@@ -313,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/demo/form/address'
       fullPath: '/demo/form/address'
       preLoaderRoute: typeof DemoFormAddressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/form/simple': {
+      id: '/demo/form/simple'
+      path: '/demo/form/simple'
+      fullPath: '/demo/form/simple'
+      preLoaderRoute: typeof DemoFormSimpleRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -352,7 +332,6 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   DemoStoreRoute: DemoStoreRoute,
-  DemoTableRoute: DemoTableRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   DemoIndexRoute: DemoIndexRoute,
   DemoFormAddressRoute: DemoFormAddressRoute,

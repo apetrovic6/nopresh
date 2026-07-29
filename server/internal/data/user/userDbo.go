@@ -25,9 +25,7 @@ func (u UserDbo) TableName() string {
 	return "users"
 }
 
-func (u UserModel) Insert(user *user.User, password []byte) (*user.User, error) {
-	ctx := context.Background()
-
+func (u UserModel) Insert(ctx context.Context, user *user.User, password []byte) (*user.User, error) {
 	userDbo := toDbo(user)
 
 	userDbo.Hashed_password = string(password)

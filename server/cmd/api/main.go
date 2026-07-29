@@ -19,7 +19,7 @@ import (
 
 type app struct {
 	mux         *http.ServeMux
-	config      config
+	config      *config
 	logger      *slog.Logger
 	models      data.Models
 	middlewares Middlewares
@@ -28,6 +28,7 @@ type app struct {
 
 func main() {
 	var cfg config
+
 	cfg.loadFlags()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -50,7 +51,7 @@ func main() {
 	app := &app{
 		mux:         http.NewServeMux(),
 		logger:      logger,
-		config:      cfg,
+		config:      &cfg,
 		middlewares: NewMiddleware(jwt, logger, cfg.domains),
 		models:      data.NewModels(db),
 		jwt:         jwt,

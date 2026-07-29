@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	authv1 "nopresh.apetrovic.com/gen/proto/auth/v1"
 	"nopresh.apetrovic.com/internal/data"
+	"nopresh.apetrovic.com/internal/domain/settings"
 	"nopresh.apetrovic.com/internal/domain/user"
 	"nopresh.apetrovic.com/internal/utils/auth"
 )
@@ -20,6 +21,7 @@ type AuthServer struct {
 	models data.Models
 	logger *slog.Logger
 	jwt    *auth.JWT
+	config *config
 }
 
 func setJwtCookies(header http.Header, accessToken, refreshToken string) {
@@ -43,7 +45,7 @@ func setJwtCookies(header http.Header, accessToken, refreshToken string) {
 }
 
 func (s *AuthServer) Register(
-	_ context.Context,
+	ctx context.Context,
 	req *connect.Request[authv1.RegisterRequest],
 ) (*connect.Response[authv1.RegisterResponse], error) {
 	newUser := user.New(req.Msg.Email, req.Msg.Name)
@@ -57,7 +59,18 @@ func (s *AuthServer) Register(
 		return nil, err
 	}
 
-	newUser, err = s.models.Users.Insert(newUser, encodedHash)
+	newUser, err = s.models.Users.Insert(ctx, newUser, encodedHash)
+
+	if err != nil {
+		return nil, err
+	}
+
+	newSettings := settings.Settings{
+		UserId:   newUser.ID,
+		TimeZone: s.config.tz,
+	}
+
+	_, err = s.models.Settings.Insert(ctx, &newSettings)
 
 	if err != nil {
 		return nil, err
