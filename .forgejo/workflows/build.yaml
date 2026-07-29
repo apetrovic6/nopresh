@@ -10,16 +10,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build server proto
+      - name: Build proto
         run: |
-         cd ./server
-         buf lint
-         buf generate
-
-      - name: Build client proto
-        run: |
-         cd ./server
-         bun generate
+          devenv tasks run nopresh:rebuildServerProto nopresh:rebuildClientProto
           
       - name: Build & push image to Forgejo registry
         env:
