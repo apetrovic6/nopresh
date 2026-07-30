@@ -15,7 +15,7 @@ type RefreshTokenModel struct {
 type RefreshTokenDbo struct {
 	gorm.Model
 	UserEmail    string
-	RefreshToken string `gorm:"size:256"`
+	RefreshToken string `gorm:"type:text"`
 	IsRevoked    bool
 	ExpiresAt    time.Time
 	Uuid         string

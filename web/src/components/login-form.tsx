@@ -29,8 +29,8 @@ export function LoginForm({
 
   const form = useAppForm({
     defaultValues: {
-      email: "ugala@bugala.com",
-      password: "12345",
+      email: "",
+      password: "",
     },
     onSubmit: async ({ value }) => {
       const { email, password } = value;

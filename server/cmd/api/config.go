@@ -14,6 +14,7 @@ type config struct {
 	env         string
 	db          db
 	tz          string
+	domains     string
 	jwtSecret   string
 	jwtDuration time.Duration
 }
@@ -66,7 +67,7 @@ func (cfg *config) loadFlags() {
 
 	flag.StringVar(&cfg.host, "host", os.Getenv("HOST"), "127.0.0.1")
 	flag.StringVar(&cfg.tz, "timezone", os.Getenv("APP_TZ"), "Timezone for the app and db connection string")
-	// flag.StringVar(&cfg.domains, "domain", os.Getenv("DOMAINS"), "Domains from which the frontend(s) will be hosted on. Domains should be separated by a comma (https://domain1.com,https://domain2.com)")
+	flag.StringVar(&cfg.domains, "domain", os.Getenv("DOMAINS"), "Domains from which the frontend(s) will be hosted on. Domains should be separated by a comma (https://domain1.com,https://domain2.com)")
 	flag.StringVar(&cfg.env, "env", os.Getenv("ENVIRONMENT"), "Evironment (development|staging|production)")
 	flag.IntVar(&cfg.port, "port", port, "5000")
 

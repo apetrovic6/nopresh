@@ -10,10 +10,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build proto
-        run: |
-          devenv tasks run nopresh:rebuildServerProto nopresh:rebuildClientProto
-          
       - name: Build & push image to Forgejo registry
         env:
           # Forgejo Actions secret: a token with `write:package` scope.
