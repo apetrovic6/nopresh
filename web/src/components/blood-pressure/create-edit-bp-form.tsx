@@ -8,7 +8,7 @@ import z from "zod";
 import { queryClient, transport } from "#/integrations/connect";
 import { toast } from "sonner";
 import { BloodPressureEntrySchema, type BloodPressureEntry } from "#/gen/proto/bloodpressure/v1/bloodpressure_pb";
-import {  MedicationUtils, } from "../medication/medication-utils";
+import { MedicationUtils, } from "../medication/medication-utils";
 import { timestampDate, timestampNow } from "@bufbuild/protobuf/wkt";
 import { startOfMinute, } from "date-fns";
 import { TZDate } from "@date-fns/tz";
@@ -30,6 +30,7 @@ const schema = z.object({
   dateTimeUtc: z.date().nonoptional(),
   medication: z.string().transform(val => Number(val)).pipe(z.number().int().nonnegative()),
   medicationTaken: z.boolean(),
+  comment: z.string().optional(),
 })
 
 type BpFormValues = {
@@ -40,6 +41,7 @@ type BpFormValues = {
   dateTimeUtc: Date
   medication: string
   medicationTaken: boolean
+  comment?: string
 }
 
 export function CreateEditBp({ bpEntry, formId, onSuccess }: CreateEditBpProps) {
@@ -57,6 +59,7 @@ export function CreateEditBp({ bpEntry, formId, onSuccess }: CreateEditBpProps) 
     dateTimeUtc: new TZDate(timestampDate(bpEntry.dateTimeUtc ?? timestampNow()), settings.settings?.timezone),
     medication: bpEntry.medicationId.toString(),
     medicationTaken: bpEntry.medicationTaken,
+    comment: bpEntry.comment,
   } : {
     diastolic: 0,
     systolic: 0,
@@ -65,10 +68,11 @@ export function CreateEditBp({ bpEntry, formId, onSuccess }: CreateEditBpProps) 
     dateTimeUtc: startOfMinute(new TZDate(new Date(), settings.settings?.timezone)),
     medication: (settings.settings?.defaultMedicationId ?? 0).toString(),
     medicationTaken: false,
+    comment: "",
   }
 
   async function createBloodPressureEntry(values: typeof form.state.values) {
-    const { dosage, diastolic, medication, pulse, systolic, medicationTaken, dateTimeUtc } = values;
+    const { dosage, diastolic, medication, pulse, systolic, medicationTaken, dateTimeUtc, comment } = values;
     const instant = dateTimeUtc ?? new TZDate();
 
     await createBloodPressureAsync({
@@ -79,6 +83,7 @@ export function CreateEditBp({ bpEntry, formId, onSuccess }: CreateEditBpProps) 
       dosage: Number(dosage),
       medicationTaken,
       dateTimeUtc: instant.toTimestamp(),
+      comment
     }, {
       onSuccess() {
         queryClient.invalidateQueries({
@@ -110,7 +115,7 @@ export function CreateEditBp({ bpEntry, formId, onSuccess }: CreateEditBpProps) 
   }
 
   async function updateBloodPressureEntry(values: typeof form.state.values) {
-    const { dosage, diastolic, medication, pulse, systolic, medicationTaken, dateTimeUtc } = values;
+    const { dosage, diastolic, medication, pulse, systolic, medicationTaken, dateTimeUtc, comment } = values;
     const instant = dateTimeUtc ?? new TZDate();
 
     const paths = dirtyFieldMaskPaths(BloodPressureEntrySchema, form.state.fieldMeta);
@@ -124,6 +129,7 @@ export function CreateEditBp({ bpEntry, formId, onSuccess }: CreateEditBpProps) 
       dosage: Number(dosage),
       medicationTaken,
       dateTimeUtc: instant.toTimestamp(),
+      comment,
       updateMask: {
         paths
       }
@@ -232,6 +238,11 @@ export function CreateEditBp({ bpEntry, formId, onSuccess }: CreateEditBpProps) 
           <form.AppField name="medicationTaken">
             {field => <field.Switch label="Medication Taken" />}
           </form.AppField>
+
+          <form.AppField name="comment">
+            {field => <field.TextField label="Comment" />}
+          </form.AppField>
+
         </FieldGroup>
       </form>
     </>

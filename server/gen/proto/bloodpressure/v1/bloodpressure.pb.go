@@ -196,6 +196,7 @@ type CreateBloodPressureRequest struct {
 	MedicationId    uint32                 `protobuf:"varint,5,opt,name=medication_id,json=medicationId,proto3" json:"medication_id,omitempty"`
 	Dosage          float32                `protobuf:"fixed32,6,opt,name=dosage,proto3" json:"dosage,omitempty"`
 	MedicationTaken bool                   `protobuf:"varint,7,opt,name=medication_taken,json=medicationTaken,proto3" json:"medication_taken,omitempty"`
+	Comment         string                 `protobuf:"bytes,8,opt,name=comment,proto3" json:"comment,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -279,6 +280,13 @@ func (x *CreateBloodPressureRequest) GetMedicationTaken() bool {
 	return false
 }
 
+func (x *CreateBloodPressureRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
 type DeleteBloodPressureRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -337,6 +345,7 @@ type BloodPressureEntry struct {
 	CreatedAt       *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt       *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	Medication      *v1.Medication         `protobuf:"bytes,12,opt,name=medication,proto3" json:"medication,omitempty"`
+	Comment         string                 `protobuf:"bytes,13,opt,name=comment,proto3" json:"comment,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -453,6 +462,13 @@ func (x *BloodPressureEntry) GetMedication() *v1.Medication {
 		return x.Medication
 	}
 	return nil
+}
+
+func (x *BloodPressureEntry) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
 }
 
 type CreateBloodPressureResponse struct {
@@ -614,6 +630,7 @@ type UpdateBloodPressureRequest struct {
 	Dosage          float32                `protobuf:"fixed32,7,opt,name=dosage,proto3" json:"dosage,omitempty"`
 	MedicationTaken bool                   `protobuf:"varint,8,opt,name=medication_taken,json=medicationTaken,proto3" json:"medication_taken,omitempty"`
 	UpdateMask      *fieldmaskpb.FieldMask `protobuf:"bytes,9,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	Comment         string                 `protobuf:"bytes,10,opt,name=comment,proto3" json:"comment,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -711,6 +728,13 @@ func (x *UpdateBloodPressureRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
 	return nil
 }
 
+func (x *UpdateBloodPressureRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
 var File_proto_bloodpressure_v1_bloodpressure_proto protoreflect.FileDescriptor
 
 const file_proto_bloodpressure_v1_bloodpressure_proto_rawDesc = "" +
@@ -725,7 +749,7 @@ const file_proto_bloodpressure_v1_bloodpressure_proto_rawDesc = "" +
 	"\x06cursor\x18\x01 \x01(\tR\x06cursor\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\rR\bpageSize\x12@\n" +
 	"\n" +
-	"sort_order\x18\x03 \x01(\x0e2!.proto.bloodpressure.v1.SORTORDERR\tsortOrder\"\xcd\x02\n" +
+	"sort_order\x18\x03 \x01(\x0e2!.proto.bloodpressure.v1.SORTORDERR\tsortOrder\"\xe7\x02\n" +
 	"\x1aCreateBloodPressureRequest\x12$\n" +
 	"\bsystolic\x18\x01 \x01(\rB\b\xbaH\x05\xc8\x01\x01*\x00R\bsystolic\x12&\n" +
 	"\tdiastolic\x18\x02 \x01(\rB\b\xbaH\x05\xc8\x01\x01*\x00R\tdiastolic\x12\x1e\n" +
@@ -733,9 +757,10 @@ const file_proto_bloodpressure_v1_bloodpressure_proto_rawDesc = "" +
 	"\rdate_time_utc\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampB\t\xbaH\x06\xc8\x01\x01\xb2\x01\x00R\vdateTimeUtc\x12+\n" +
 	"\rmedication_id\x18\x05 \x01(\rB\x06\xbaH\x03\xc8\x01\x01R\fmedicationId\x12\x1e\n" +
 	"\x06dosage\x18\x06 \x01(\x02B\x06\xbaH\x03\xc8\x01\x01R\x06dosage\x12)\n" +
-	"\x10medication_taken\x18\a \x01(\bR\x0fmedicationTaken\"6\n" +
+	"\x10medication_taken\x18\a \x01(\bR\x0fmedicationTaken\x12\x18\n" +
+	"\acomment\x18\b \x01(\tR\acomment\"6\n" +
 	"\x1aDeleteBloodPressureRequest\x12\x18\n" +
-	"\x02id\x18\x01 \x01(\rB\b\xbaH\x05\xc8\x01\x01*\x00R\x02id\"\xec\x03\n" +
+	"\x02id\x18\x01 \x01(\rB\b\xbaH\x05\xc8\x01\x01*\x00R\x02id\"\x86\x04\n" +
 	"\x12BloodPressureEntry\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x1a\n" +
 	"\bsystolic\x18\x02 \x01(\rR\bsystolic\x12\x1c\n" +
@@ -753,7 +778,8 @@ const file_proto_bloodpressure_v1_bloodpressure_proto_rawDesc = "" +
 	"updated_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12?\n" +
 	"\n" +
 	"medication\x18\f \x01(\v2\x1f.proto.medication.v1.MedicationR\n" +
-	"medication\"_\n" +
+	"medication\x12\x18\n" +
+	"\acomment\x18\r \x01(\tR\acomment\"_\n" +
 	"\x1bCreateBloodPressureResponse\x12@\n" +
 	"\x05entry\x18\x01 \x01(\v2*.proto.bloodpressure.v1.BloodPressureEntryR\x05entry\"\x9d\x01\n" +
 	"\x17GetBloodPressureRequest\x12=\n" +
@@ -762,7 +788,7 @@ const file_proto_bloodpressure_v1_bloodpressure_proto_rawDesc = "" +
 	"dateFilter\"\xac\x01\n" +
 	"\x18GetBloodPressureResponse\x12Q\n" +
 	"\x0eblood_pressure\x18\x01 \x03(\v2*.proto.bloodpressure.v1.BloodPressureEntryR\rbloodPressure\x12=\n" +
-	"\tpage_info\x18\x02 \x01(\v2 .proto.bloodpressure.v1.PageInfoR\bpageInfo\"\xe1\x02\n" +
+	"\tpage_info\x18\x02 \x01(\v2 .proto.bloodpressure.v1.PageInfoR\bpageInfo\"\xfb\x02\n" +
 	"\x1aUpdateBloodPressureRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x1a\n" +
 	"\bsystolic\x18\x02 \x01(\rR\bsystolic\x12\x1c\n" +
@@ -773,7 +799,9 @@ const file_proto_bloodpressure_v1_bloodpressure_proto_rawDesc = "" +
 	"\x06dosage\x18\a \x01(\x02R\x06dosage\x12)\n" +
 	"\x10medication_taken\x18\b \x01(\bR\x0fmedicationTaken\x12;\n" +
 	"\vupdate_mask\x18\t \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask*M\n" +
+	"updateMask\x12\x18\n" +
+	"\acomment\x18\n" +
+	" \x01(\tR\acomment*M\n" +
 	"\tSORTORDER\x12\x19\n" +
 	"\x15SORTORDER_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rSORTORDER_ASC\x10\x01\x12\x12\n" +

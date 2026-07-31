@@ -5,7 +5,7 @@
   inputs,
   ...
 }: let
-  version = "0.1.12";
+  version = "0.1.13";
 
   # Build the backend as a standalone, static Nix package (no CGO -> runs in a
   # minimal image). The binary is named after its subpackage dir: cmd/api -> "api".

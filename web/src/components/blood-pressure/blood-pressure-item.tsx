@@ -90,11 +90,19 @@ export function BloodPressureItem({ item, onEdit, onDelete }: BloodPressureItemP
 
           </FieldGroup>
 
-          <FieldGroup className="flex self-end">
+          <FieldGroup className="flex flex-col justify-between">
+            <Field>
+              <FieldLabel>Comment</FieldLabel>
+              <FieldContent>
+                {item.comment}
+              </FieldContent>
+            </Field>
+
             <Field orientation="horizontal">
               <Checkbox id="medication-taken-checkbox" checked={item.medicationTaken} />
               <Label htmlFor="medication-taken-checkbox">Medication Taken ({item.medication?.name})</Label>
             </Field>
+
           </FieldGroup>
 
         </div>

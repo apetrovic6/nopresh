@@ -17,7 +17,7 @@ enum SORTORDER {
 message DateFilter {
   google.protobuf.Timestamp start_date = 1;
   google.protobuf.Timestamp end_date = 2;
-  }
+}
 
 message PageInfo {
   string cursor = 1;
@@ -55,6 +55,8 @@ uint32 systolic = 1 [
   ];
 
   bool medication_taken = 7 ;
+
+  string comment = 8;
 }
 
 message DeleteBloodPressureRequest {
@@ -76,6 +78,7 @@ message BloodPressureEntry {
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
   proto.medication.v1.Medication medication = 12;
+  string comment = 13;
 }
 
 message CreateBloodPressureResponse {
@@ -101,7 +104,8 @@ message UpdateBloodPressureRequest {
   uint32 medication_id = 6;
   float dosage = 7;
   bool medication_taken = 8;
- google.protobuf.FieldMask update_mask = 9;
+  google.protobuf.FieldMask update_mask = 9;
+  string comment = 10;
 }
 
 service BloodPressureService {

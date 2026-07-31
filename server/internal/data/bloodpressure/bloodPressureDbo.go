@@ -29,6 +29,7 @@ type BloodPressureDbo struct {
 	UserId          uint
 	User            user.UserDbo
 	Dosage          float32
+	Comment         string
 	MedicationId    uint
 	Medication      medication.MedicationDbo
 	MedicationTaken bool `gorm:"default:false"`
@@ -157,6 +158,10 @@ func (b BloodPressureModel) Update(ctx *context.Context, bpId uint, bp *domain.U
 		updates["dosage"] = *bp.Dosage
 	}
 
+	if bp.Comment != nil {
+		updates["comment"] = *bp.Comment
+	}
+
 	if bp.MedicationTaken != nil {
 		updates["medication_taken"] = *bp.MedicationTaken
 	}
@@ -200,6 +205,7 @@ func new(bp *bp.BloodPressure) *BloodPressureDbo {
 		Pulse:           bp.Pulse,
 		UserId:          bp.UserId,
 		Dosage:          bp.Dosage,
+		Comment:         bp.Comment,
 		MedicationId:    bp.MedicationId,
 		MedicationTaken: bp.MedicationTaken,
 	}
@@ -214,6 +220,7 @@ func toDomain(bp *BloodPressureDbo) *domain.BloodPressure {
 		Diastolic:       bp.Diastolic,
 		Pulse:           bp.Pulse,
 		Dosage:          bp.Dosage,
+		Comment:         bp.Comment,
 		MedicationId:    bp.MedicationId,
 		Medication:      *medication.ToDomain(&bp.Medication),
 		MedicationTaken: bp.MedicationTaken,

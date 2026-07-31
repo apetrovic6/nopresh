@@ -107,6 +107,7 @@ func (bps *BloodPressureServer) CreateBloodPressure(
 		req.Msg.Dosage,
 		uint(req.Msg.MedicationId),
 		req.Msg.MedicationTaken,
+		req.Msg.Comment,
 	)
 
 	savedBpEntry, err := bps.models.BloodPressure.Insert(&ctx, newBpEntry)
@@ -163,6 +164,8 @@ func (bps *BloodPressureServer) UpdateBloodPressure(
 			input.MedicationId = new(uint(req.Msg.MedicationId))
 		case "medication_taken":
 			input.MedicationTaken = new(req.Msg.MedicationTaken)
+		case "comment":
+			input.Comment = new(req.Msg.Comment)
 		}
 
 	}
@@ -245,6 +248,7 @@ func fromDomainObject(bp *bp.BloodPressure) *bloodpressurev1.BloodPressureEntry 
 		UpdatedAt:       timestamppb.New(bp.UpdatedAt),
 		MedicationId:    uint32(bp.MedicationId),
 		Dosage:          bp.Dosage,
+		Comment:         bp.Comment,
 		MedicationTaken: bp.MedicationTaken,
 		Medication:      medFromDomainObject(&bp.Medication),
 	}
@@ -257,6 +261,7 @@ type BloodPressureUpdateDto struct {
 	UserId          *uint16
 	DateTimeUtc     *time.Time
 	MedicationId    *uint
-	dosage          *float32
+	Dosage          *float32
+	Comment         *string
 	MedicationTaken *bool
 }

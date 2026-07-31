@@ -14,6 +14,7 @@ type BloodPressure struct {
 	Diastolic       uint16
 	Pulse           uint16
 	Dosage          float32
+	Comment         string
 	MedicationId    uint
 	Medication      medication.Medication
 	MedicationTaken bool
@@ -27,12 +28,13 @@ type UpdateDto struct {
 	Diastolic       *uint16
 	Pulse           *uint16
 	Dosage          *float32
+	Comment         *string
 	MedicationId    *uint
 	Medication      *medication.Medication
 	MedicationTaken *bool
 }
 
-func New(id, userId uint, dateTime time.Time, systolic, diastolic, pulse uint16, dosage float32, medicationId uint, medicationTaken bool) *BloodPressure {
+func New(id, userId uint, dateTime time.Time, systolic, diastolic, pulse uint16, dosage float32, medicationId uint, medicationTaken bool, comment string) *BloodPressure {
 	return &BloodPressure{
 		ID:              id,
 		UserId:          userId,
@@ -41,6 +43,7 @@ func New(id, userId uint, dateTime time.Time, systolic, diastolic, pulse uint16,
 		Diastolic:       diastolic,
 		Pulse:           pulse,
 		Dosage:          dosage,
+		Comment:         comment,
 		MedicationId:    medicationId,
 		MedicationTaken: medicationTaken,
 	}
