@@ -5,11 +5,13 @@
   inputs,
   ...
 }: let
+  version = "0.1.12";
+
   # Build the backend as a standalone, static Nix package (no CGO -> runs in a
   # minimal image). The binary is named after its subpackage dir: cmd/api -> "api".
   backend = (pkgs.buildGoModule.override {go = config.languages.go.package;}) {
     pname = "nopresh";
-    version = "0.1.0";
+    inherit version;
     src = lib.cleanSourceWith {
       src = ./server;
       filter = path: _type: !lib.hasInfix "cmd/api/dist/" (toString path + "/");
@@ -75,6 +77,7 @@ in {
     nixd
 
     podman-compose
+    skopeo
 
     # Protobuf stuff
     protols
@@ -214,6 +217,7 @@ in {
       apiHost = "0.0.0.0";
       apiPort = toString config.processes.backend.ports.http.value;
     in {
+      VITE_APP_VERSION = version;
       # Safe to bake into the image (no secrets, no big store paths).
       # Empty host => listen on all interfaces (dual-stack IPv4 + IPv6) so that
       # a client using "localhost" reaches the server whether localhost resolves
