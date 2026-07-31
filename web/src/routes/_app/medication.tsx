@@ -18,7 +18,7 @@ function RouteComponent() {
     setOpenEdit(false);
   }
 
-  return <div className='space-y-8'>
+  return <div className='space-y-8 flex-1 min-h-0 overflow-auto'>
     <div className='flex justify-between m-2'>
       <h1 className="scroll-m-20 text-left text-4xl font-extrabold tracking-tight text-balance">
         Medications

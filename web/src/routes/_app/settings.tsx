@@ -121,7 +121,7 @@ function SettingsForm({ medications, settings, formId }: SettingsFormProps) {
   }
 
   return (
-    <section className='m-2'>
+    <section className='m-2 flex-1 min-h-0 overflow-auto'>
       <h1 className='scroll-m-20 text-left text-4xl font-extrabold tracking-tight text-balance'>Settings</h1>
       <div>
         <form onSubmit={onSettingsSubmit} id={formId} >
