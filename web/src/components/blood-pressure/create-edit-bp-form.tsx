@@ -61,7 +61,7 @@ export function CreateEditBp({ bpEntry, formId, onSuccess }: CreateEditBpProps) 
     diastolic: 0,
     systolic: 0,
     pulse: 0,
-    dosage: MedicationUtils.getDosage(settings.settings?.defaultMedicationId ?? 0, medications?.medications ?? []) ?? 0,
+    dosage: MedicationUtils.getMedicationDosage(settings.settings?.defaultMedicationId ?? 0, medications?.medications ?? []) ?? 0,
     dateTimeUtc: startOfMinute(new TZDate(new Date(), settings.settings?.timezone)),
     medication: (settings.settings?.defaultMedicationId ?? 0).toString(),
     medicationTaken: false,
