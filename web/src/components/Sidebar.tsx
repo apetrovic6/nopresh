@@ -93,11 +93,7 @@ export function AppSidebar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuGroup>
-                    <DropdownMenuItem>Profile</DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/settings"> Settings</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem  >
+                    <DropdownMenuItem>
                       <Link className="w-full" onClick={onLogout} to="/auth/login"> Logout</Link>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
@@ -121,7 +117,6 @@ function User({ email, name }: UserProps) {
   const title = name ? name[0].toUpperCase() + name.slice(1) : "";
 
   return (
-
     <Item variant={"outline"} className="h-min m-0 px-3 py-2 flex justify-between">
       <ItemGroup>
         <ItemTitle>
