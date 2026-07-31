@@ -1,4 +1,3 @@
-import Header from '#/components/Header'
 import { me } from '#/gen/proto/auth/v1/auth-AuthService_connectquery';
 import { transport } from '#/integrations/connect';
 import { callUnaryMethod } from '@connectrpc/connect-query';
@@ -23,7 +22,6 @@ export const Route = createFileRoute('/auth')({
 function RouteComponent() {
   return (
     <div className='min-h-screen flex flex-col'>
-      <Header />
       <div className='flex-1 flex items-center justify-center'>
         <Outlet />
       </div>

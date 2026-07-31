@@ -12,6 +12,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import z from 'zod';
 import { dirtyFieldMaskPaths } from '#/lib/field-mask';
 import { useToast } from '#/hooks/use-toast';
+import ThemeToggle from '#/components/ThemeToggle';
 
 const timeZones = Intl.supportedValuesOf('timeZone').map(timezone => ({ label: timezone, value: timezone }));
 
@@ -74,7 +75,7 @@ function SettingsForm({ medications, settings, formId }: SettingsFormProps) {
 
   async function updateSettingsEntry(value: typeof form.state.values) {
     const paths = dirtyFieldMaskPaths(SettingsSchema, form.state.fieldMeta);
-    
+
     await updateSettingsAsync({
       defaultMedicationId: Number(value.defaultMedicationId),
       timezone: value.timezone,
@@ -148,6 +149,10 @@ function SettingsForm({ medications, settings, formId }: SettingsFormProps) {
             }
           </Button>
         </form>
+
+        {
+          // <ThemeToggle />
+        }
       </div>
     </section>
   )
