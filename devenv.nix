@@ -53,9 +53,17 @@
       fetcherVersion = 4;
       hash = "sha256-HexFVoiEp+e1HyEZXRZVqOePqxwlatK7ODYPWLOgTvQ=";
     };
+
     # CI=true so pnpm runs non-interactively (no TTY in the sandbox).
     # VITE_-prefixed vars are inlined into the browser bundle at build time.
-    env.CI = "true";
+    # This derivation is built in Nix's isolated env, so it does NOT inherit
+    # devenv's shell `env` — the version must be passed in explicitly here or the
+    # deployed bundle inlines an empty string (works in `bun dev`, blank in prod).
+    env = {
+      CI = "true";
+      VITE_APP_VERSION = version;
+    };
+
     buildPhase = ''
       runHook preBuild
       pnpm build
